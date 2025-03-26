@@ -1,6 +1,7 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
+import 'package:flutter_contacts/flutter_contacts.dart';
+import 'package:photo_manager/photo_manager.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 class Home extends StatefulWidget {
@@ -14,6 +15,49 @@ class _HomeState extends State<Home> {
   WebViewController controller = WebViewController();
 
   bool isOpen = false;
+  List contactList = [];
+
+  Future<void> pickMultiplePhotos() async {
+    final PermissionState ps = await PhotoManager.requestPermissionExtend();
+    if (ps.isAuth) {
+      List<AssetEntity> images = await PhotoManager.getAssetListRange(
+        start: 0,
+        end: 100, // 최대 100개 이미지 가져오기
+        type: RequestType.image,
+      );
+
+      for (var img in images) {
+        print("선택된 이미지: ${img.id}");
+      }
+    } else {
+      print("갤러리 접근 권한이 필요합니다.");
+    }
+  }
+
+  Future<void> getContacts() async {
+    // 1️⃣ 연락처 접근 권한 요청
+    if (await FlutterContacts.requestPermission()) {
+      // 2️⃣ 연락처 목록 가져오기
+      List<Contact> contacts = await FlutterContacts.getContacts(
+        withProperties: true,
+      );
+
+      // 3️⃣ 연락처 출력
+      for (var contact in contacts) {
+        contactList.add({
+          'name': contact.displayName,
+          'number':
+              contact.phones.isNotEmpty ? contact.phones.first.number : '없음',
+        });
+
+        print(contactList);
+
+        setState(() {});
+      }
+    } else {
+      print("연락처 접근 권한이 거부됨");
+    }
+  }
 
   void inputPopupMenu() {
     showDialog(
@@ -37,6 +81,12 @@ class _HomeState extends State<Home> {
                   ),
                   ElevatedButton(
                     onPressed: () {
+                      print(contactList);
+                    },
+                    child: Text('연락처 선택'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
                       setState(() {
                         isOpen = !isOpen;
                       });
@@ -49,31 +99,6 @@ class _HomeState extends State<Home> {
             ),
           ),
         );
-        // return AlertDialog(
-        //   // RoundedRectangleBorder - Dialog 화면 모서리 둥글게 조절
-        //   shape: RoundedRectangleBorder(
-        //     borderRadius: BorderRadius.circular(10.0),
-        //   ),
-        //   //Dialog Main Title
-        //   title: Column(children: <Widget>[Text("Dialog Title")]),
-        //   //
-        //   content: Column(
-        //     mainAxisSize: MainAxisSize.min,
-        //     crossAxisAlignment: CrossAxisAlignment.start,
-        //     children: <Widget>[Text("Dialog Content")],
-        //   ),
-        //   actions: <Widget>[
-        //     ElevatedButton(
-        //       child: Text("확인"),
-        //       onPressed: () {
-        //         setState(() {
-        //           isOpen = !isOpen;
-        //         });
-        //         Navigator.pop(context);
-        //       },
-        //     ),
-        //   ],
-        // );
       },
     );
   }
@@ -100,6 +125,7 @@ class _HomeState extends State<Home> {
                     child: InkWell(
                       onTap: () {
                         print('사진첩');
+                        pickMultiplePhotos();
                         Navigator.pop(context);
                       },
                       child: Container(
@@ -124,6 +150,7 @@ class _HomeState extends State<Home> {
                     child: InkWell(
                       onTap: () {
                         print('파일');
+                        getContacts();
                         Navigator.pop(context);
                       },
                       child: Container(
@@ -161,6 +188,11 @@ class _HomeState extends State<Home> {
         inputPopupMenu();
       }
     });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
   }
 
   @override
@@ -215,9 +247,7 @@ class _HomeState extends State<Home> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
-        child: Container(
-          child: WebViewWidget(controller: controller),
-        ),
+        child: Container(child: WebViewWidget(controller: controller)),
       ),
     );
   }
