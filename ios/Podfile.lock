@@ -4,9 +4,8 @@ PODS:
   - Flutter (1.0.0)
   - flutter_contacts (0.0.1):
     - Flutter
-  - photo_manager (2.0.0):
+  - image_picker_ios (0.0.1):
     - Flutter
-    - FlutterMacOS
   - webview_flutter_wkwebview (0.0.1):
     - Flutter
     - FlutterMacOS
@@ -15,7 +14,7 @@ DEPENDENCIES:
   - camera_avfoundation (from `.symlinks/plugins/camera_avfoundation/ios`)
   - Flutter (from `Flutter`)
   - flutter_contacts (from `.symlinks/plugins/flutter_contacts/ios`)
-  - photo_manager (from `.symlinks/plugins/photo_manager/ios`)
+  - image_picker_ios (from `.symlinks/plugins/image_picker_ios/ios`)
   - webview_flutter_wkwebview (from `.symlinks/plugins/webview_flutter_wkwebview/darwin`)
 
 EXTERNAL SOURCES:
@@ -25,17 +24,17 @@ EXTERNAL SOURCES:
     :path: Flutter
   flutter_contacts:
     :path: ".symlinks/plugins/flutter_contacts/ios"
-  photo_manager:
-    :path: ".symlinks/plugins/photo_manager/ios"
+  image_picker_ios:
+    :path: ".symlinks/plugins/image_picker_ios/ios"
   webview_flutter_wkwebview:
     :path: ".symlinks/plugins/webview_flutter_wkwebview/darwin"
 
 SPEC CHECKSUMS:
-  camera_avfoundation: dd002b0330f4981e1bbcb46ae9b62829237459a4
+  camera_avfoundation: 04b44aeb14070126c6529e5ab82cc7c9fca107cf
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
-  flutter_contacts: edb1c5ce76aa433e20e6cb14c615f4c0b66e0983
-  photo_manager: ff695c7a1dd5bc379974953a2b5c0a293f7c4c8a
-  webview_flutter_wkwebview: a4af96a051138e28e29f60101d094683b9f82188
+  flutter_contacts: 5383945387e7ca37cf963d4be57c21f2fc15ca9f
+  image_picker_ios: 7fe1ff8e34c1790d6fff70a32484959f563a928a
+  webview_flutter_wkwebview: 1821ceac936eba6f7984d89a9f3bcb4dea99ebb2
 
 PODFILE CHECKSUM: 4305caec6b40dde0ae97be1573c53de1882a07e5
 
