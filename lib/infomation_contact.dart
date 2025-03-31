@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
+import 'package:webconnect/search_contact_view.dart';
+import 'package:webconnect/snack.dart';
+import 'package:webconnect/theme_color.dart';
 
 class InfomationContact extends StatefulWidget {
   const InfomationContact({super.key});
@@ -9,7 +12,10 @@ class InfomationContact extends StatefulWidget {
 }
 
 class _InfomationContactState extends State<InfomationContact> {
-  List contactList = [];
+  ThemeColor _themeColor = ThemeColor();
+  List<Map<String, String>> contactList = [];
+  late TextEditingController nameController = TextEditingController();
+  late TextEditingController numberController = TextEditingController();
 
   Future<void> getContacts() async {
     contactList.clear();
@@ -29,7 +35,7 @@ class _InfomationContactState extends State<InfomationContact> {
 
       setState(() {
         if (contactList.isNotEmpty) {
-          bottomSheetMenu();
+          contact(contactList);
         }
       });
     } else {
@@ -37,59 +43,36 @@ class _InfomationContactState extends State<InfomationContact> {
     }
   }
 
-  void bottomSheetMenu() {
-    showModalBottomSheet(
-      context: context,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(16), // 상단 왼쪽 코너 라운드
-          topRight: Radius.circular(16), // 상단 오른쪽 코너 라운드
-        ),
+  contact(list) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SearchContactView(contacts: list),
+        fullscreenDialog: true,
       ),
-      backgroundColor: Colors.white,
-      builder: (context) {
-        return SizedBox(
-          height: 440,
-          child: Padding(
-            padding: EdgeInsets.fromLTRB(16, 16, 16, 32),
-            child: SizedBox(
-              child: ListView.builder(
-                itemCount: contactList.length,
-                itemBuilder: (context, index) {
-                  return InkWell(
-                    onTap: () {},
-                    child: SizedBox(
-                      height: 44,
-                      child: Column(
-                        children: [
-                          Expanded(
-                            child: Container(
-                              alignment: Alignment.centerLeft,
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text('${contactList[index]['name']}'),
-                                  Text(
-                                    '${contactList[index]['number']}',
-                                    style: TextStyle(color: Colors.blue),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          Container(height: 0.1, color: Colors.black),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ),
-        );
-      },
     );
+
+    if (result != null) {
+      final Map<String, dynamic> data = result;
+      print('Returned result: $data');
+
+      nameController.clear();
+      numberController.clear();
+
+      Snack().showTopSnackBar(context, '연락처 정보를 가져 왔습니다.');
+
+      setState(() {
+        nameController.text = data['name'];
+        numberController.text = data['number'];
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    nameController.dispose();
+    numberController.dispose();
+    super.dispose();
   }
 
   @override
@@ -98,6 +81,24 @@ class _InfomationContactState extends State<InfomationContact> {
       height: 170,
       child: Column(
         children: [
+          TextButton(
+            style: TextButton.styleFrom(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              backgroundColor: _themeColor.themeColor,
+              minimumSize: Size(MediaQuery.of(context).size.width, 35),
+            ),
+            onPressed: getContacts,
+            child: Text(
+              '주소록에서 가져오기',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
           Container(
             height: 120,
             decoration: BoxDecoration(
@@ -119,10 +120,11 @@ class _InfomationContactState extends State<InfomationContact> {
                         decoration: BoxDecoration(
                           color: Colors.white,
                           border: Border.all(color: Colors.black, width: 0.3),
-                          borderRadius: BorderRadius.circular(4),
+                          borderRadius: BorderRadius.circular(8),
                         ),
                         padding: EdgeInsets.fromLTRB(8, 0, 0, 8),
                         child: TextField(
+                          controller: nameController,
                           decoration: InputDecoration(border: InputBorder.none),
                         ),
                       ),
@@ -142,10 +144,11 @@ class _InfomationContactState extends State<InfomationContact> {
                         decoration: BoxDecoration(
                           color: Colors.white,
                           border: Border.all(color: Colors.black, width: 0.3),
-                          borderRadius: BorderRadius.circular(4),
+                          borderRadius: BorderRadius.circular(8),
                         ),
                         padding: EdgeInsets.fromLTRB(8, 0, 0, 8),
                         child: TextField(
+                          controller: numberController,
                           keyboardType: TextInputType.phone,
                           decoration: InputDecoration(border: InputBorder.none),
                         ),
@@ -163,24 +166,6 @@ class _InfomationContactState extends State<InfomationContact> {
                   ),
                 ),
               ],
-            ),
-          ),
-          TextButton(
-            style: TextButton.styleFrom(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              backgroundColor: Colors.blue,
-              minimumSize: Size(MediaQuery.of(context).size.width, 35),
-            ),
-            onPressed: getContacts,
-            child: Text(
-              '주소록에서 가져오기',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 15,
-                fontWeight: FontWeight.bold,
-              ),
             ),
           ),
         ],

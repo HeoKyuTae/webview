@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:webconnect/theme_color.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'infomation_contact.dart';
 import 'attach_image_files_widget.dart';
@@ -14,7 +15,11 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   WebViewController controller = WebViewController();
+  ThemeColor _themeColor = ThemeColor();
+
   bool isOpen = false;
+  String code = '';
+  String title = '';
 
   Future<void> _showMyDialog() async {
     return showDialog<void>(
@@ -57,9 +62,9 @@ class _HomeState extends State<Home> {
                         Navigator.of(context).pop();
                       },
                       child: Container(
-                        width: 35,
-                        height: 35,
-                        padding: EdgeInsets.all(8),
+                        width: 30,
+                        height: 30,
+                        padding: EdgeInsets.all(4),
                         color: Colors.white,
                         child: Image.asset('assets/images/close.png'),
                       ),
@@ -76,9 +81,13 @@ class _HomeState extends State<Home> {
                       width: size.width,
                       child: Column(
                         children: [
-                          Info(code: '2000000101_0001', title: '견적을 내주소 견적을 내주소 견적을 내주소'),
+                          Info(
+                            code: code,
+                            title: title,
+                          ),
+                          Divider(color: Colors.grey, thickness: 0.1),
                           InfomationContact(),
-                          SizedBox(height: 8),
+                          Divider(color: Colors.grey, thickness: 0.1),
                           AttachImageFilesWidget(),
                         ],
                       ),
@@ -92,28 +101,10 @@ class _HomeState extends State<Home> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      backgroundColor: Colors.blue,
+                      backgroundColor: _themeColor.themeColor,
                       minimumSize: Size(200, 35),
                     ),
                     onPressed: () {
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            title: Text('두 번째 알림'),
-                            content: Text('두 번째 다이얼로그입니다.'),
-                            actions: <Widget>[
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.pop(context); // 두 번째 다이얼로그 닫기
-                                },
-                                child: Text('닫기'),
-                              ),
-                            ],
-                          );
-                        },
-                      );
-
                       // isOpen = !isOpen;
                       // Navigator.pop(context);
                     },
@@ -147,7 +138,13 @@ class _HomeState extends State<Home> {
             onMessageReceived: (JavaScriptMessage message) {
               // JavaScript에서 보낸 메시지 처리
               if (message.message != '') {
-                // print("Received from Web: ${message.message}");
+                // JSON 데이터를 파싱하여 사용
+                final Map<String, dynamic> data = jsonDecode(message.message);
+                code = data['code'];
+                title = data['title'];
+
+                debugPrint('Flutter에서 받은 데이터: code=$code, title=$title');
+
                 setState(() {
                   isOpen = !isOpen;
 
@@ -174,12 +171,18 @@ class _HomeState extends State<Home> {
           <script>
             function sendMessageToFlutter() {
               if (window.FlutterChannel) {
-                window.FlutterChannel.postMessage("Hello from HTML!");
+                 const data = {
+                    code: "20250331_0001",
+                    title: "견적을 부탁 드립니다."
+                };
+                window.FlutterChannel.postMessage(JSON.stringify(data));
               } else {
                 console.log("FlutterChannel is not available.");
               }
             }
           </script>
+          <p>code: 20250331_0001</p>
+          <p>title: 견적을 부탁 드립니다.</p>
         </body>
         </html>
         """,

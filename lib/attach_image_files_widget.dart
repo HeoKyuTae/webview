@@ -1,7 +1,22 @@
 import 'dart:io';
-
+import 'package:path/path.dart' as path;
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:webconnect/alert.dart';
+import 'package:webconnect/theme_color.dart';
+
+class FileData {
+  final String fileName;
+  // final Uint8List fileBytes;
+  final File file;
+
+  FileData({required this.fileName, required this.file});
+
+  @override
+  String toString() =>
+      'FileData(fileName: $fileName, size: ${file.length} bytes)';
+}
 
 class AttachImageFilesWidget extends StatefulWidget {
   const AttachImageFilesWidget({super.key});
@@ -11,13 +26,26 @@ class AttachImageFilesWidget extends StatefulWidget {
 }
 
 class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
+  ThemeColor _themeColor = ThemeColor();
+  final ImagePicker picker = ImagePicker();
   bool isCheck = false;
 
   var imageList = [];
   var files = [];
 
-  Future<List<XFile>> pickImagesUsingImagePicker(int pickCount) async {
-    final ImagePicker picker = ImagePicker();
+  Future<XFile?> singleImagePicker() async {
+    final XFile? pickedImage = await picker.pickImage(
+      source: ImageSource.gallery,
+    );
+
+    if (pickedImage != null) {
+      return pickedImage;
+    }
+
+    return null;
+  }
+
+  Future<List<XFile>> multiImagePicker(int pickCount) async {
     final List<XFile> selectedImages = await picker.pickMultiImage(
       limit: pickCount,
     );
@@ -27,10 +55,17 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
   Future<void> getImage() async {
     var result = imageList.length + files.length;
 
-    List<XFile> images = await pickImagesUsingImagePicker(5 - result);
-    if (images.isNotEmpty) {
-      for (var image in images) {
+    if (result == 4) {
+      XFile? image = await singleImagePicker();
+      if (image != null) {
         imageList.add(image);
+      }
+    } else {
+      List<XFile> images = await multiImagePicker(5 - result);
+      if (images.isNotEmpty) {
+        for (var image in images) {
+          imageList.add(image);
+        }
       }
     }
 
@@ -42,8 +77,8 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
       context: context,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(16), // 상단 왼쪽 코너 라운드
-          topRight: Radius.circular(16), // 상단 오른쪽 코너 라운드
+          topLeft: Radius.circular(16),
+          topRight: Radius.circular(16),
         ),
       ),
       backgroundColor: Colors.white,
@@ -91,6 +126,7 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
                         Expanded(
                           child: InkWell(
                             onTap: () {
+                              getFile();
                               Navigator.pop(context);
                             },
                             child: Container(
@@ -119,6 +155,19 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
         );
       },
     );
+  }
+
+  Future<void> getFile() async {
+    FilePickerResult? resultFiles = await FilePicker.platform.pickFiles();
+
+    if (resultFiles != null) {
+      File file = File(resultFiles.files.single.path!);
+      String fileName = path.basename(file.path);
+
+      files.add(FileData(fileName: fileName, file: file));
+    }
+
+    setState(() {});
   }
 
   @override
@@ -155,13 +204,25 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          backgroundColor: Colors.blue,
+                          backgroundColor: _themeColor.themeColor,
                           minimumSize: Size(
                             MediaQuery.of(context).size.width,
                             35,
                           ),
                         ),
-                        onPressed: bottomSheetMenu,
+                        onPressed: () {
+                          var result = imageList.length + files.length;
+
+                          if (result >= 5) {
+                            Alert().showAlertDialog(
+                              context,
+                              '첨부파일은 5개 까지 가능합니다.',
+                            );
+                            return;
+                          }
+
+                          bottomSheetMenu();
+                        },
                         child: Text(
                           '첨부파일 가져오기',
                           style: TextStyle(
@@ -178,7 +239,7 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
                   ? SizedBox()
                   : Container(
                     height: 68,
-                    padding: EdgeInsets.fromLTRB(16, 0, 0, 0),
+                    padding: EdgeInsets.fromLTRB(8, 0, 0, 0),
                     child: Column(
                       children: [
                         SizedBox(height: 8),
@@ -188,8 +249,9 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
                             physics: const NeverScrollableScrollPhysics(),
                             itemCount: imageList.length,
                             itemBuilder: (context, index) {
-                              return Padding(
-                                padding: EdgeInsets.all(4),
+                              return SizedBox(
+                                width: 60,
+                                height: 60,
                                 child: Stack(
                                   alignment: Alignment.center,
                                   children: [
@@ -210,23 +272,33 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
                                         ),
                                       ),
                                     ),
-                                    Center(
+                                    Positioned(
+                                      top: 0,
+                                      right: 0,
                                       child: GestureDetector(
-                                        onTap: () {
+                                        onTap: () async {
                                           if (imageList.isEmpty) {
                                             return;
                                           }
 
-                                          setState(() {
-                                            imageList.removeAt(index);
-                                          });
+                                          bool? result = await Alert()
+                                              .showRemoveImageAlertDialog(
+                                                context,
+                                                imageList[index].path,
+                                              );
+
+                                          if (result == true) {
+                                            setState(() {
+                                              imageList.removeAt(index);
+                                            });
+                                          }
                                         },
                                         child: Container(
-                                          width: 32,
-                                          height: 32,
-                                          padding: EdgeInsets.all(8),
+                                          width: 25,
+                                          height: 25,
+                                          padding: EdgeInsets.all(6),
                                           decoration: BoxDecoration(
-                                            color: Colors.black.withAlpha(200),
+                                            color: _themeColor.themeColor,
                                             borderRadius: BorderRadius.circular(
                                               32,
                                             ),
@@ -254,8 +326,10 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
                   shrinkWrap: true,
                   itemCount: files.length,
                   itemBuilder: (context, index) {
+                    FileData data = files[index];
+
                     return Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                      padding: const EdgeInsets.fromLTRB(12, 8, 16, 0),
                       child: Container(
                         height: 44,
                         decoration: BoxDecoration(
@@ -267,19 +341,27 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
                         child: Row(
                           children: [
                             InkWell(
-                              onTap: () {
+                              onTap: () async {
                                 if (files.isEmpty) {
                                   return;
                                 }
 
-                                setState(() {
-                                  files.removeAt(index);
-                                });
+                                bool? result = await Alert()
+                                    .showRemoveFileAlertDialog(
+                                      context,
+                                      data.fileName,
+                                    );
+
+                                if (result == true) {
+                                  setState(() {
+                                    files.removeAt(index);
+                                  });
+                                }
                               },
                               child: Container(
                                 width: 44,
                                 height: 44,
-                                padding: EdgeInsets.all(13),
+                                padding: EdgeInsets.all(15),
                                 child: Image.asset(
                                   'assets/images/close.png',
                                   color: Colors.red,
@@ -288,7 +370,7 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
                             ),
                             Expanded(
                               child: Text(
-                                files[index],
+                                data.fileName,
                                 style: TextStyle(
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -324,7 +406,7 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
                     isCheck = !isCheck;
                   });
                 },
-                child: Container(
+                child: SizedBox(
                   height: 44,
                   child: Row(
                     children: [
@@ -336,6 +418,7 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
                           border: Border.all(
                             color: Colors.black.withAlpha(130),
                           ),
+                          borderRadius: BorderRadius.circular(8),
                         ),
                         child:
                             isCheck

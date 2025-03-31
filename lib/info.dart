@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:webconnect/theme_color.dart';
 
 class Info extends StatefulWidget {
   final String code;
@@ -10,9 +11,11 @@ class Info extends StatefulWidget {
 }
 
 class _InfoState extends State<Info> {
+  ThemeColor _themeColor = ThemeColor();
+  
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       height: 35,
       child: Row(
         children: [
@@ -30,7 +33,7 @@ class _InfoState extends State<Info> {
               widget.title,
               style: TextStyle(
                 overflow: TextOverflow.ellipsis,
-                color: Colors.blue,
+                color: _themeColor.themeColor,
                 fontWeight: FontWeight.bold,
               ),
             ),
