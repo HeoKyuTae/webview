@@ -358,6 +358,7 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
                                               32,
                                             ),
                                           ),
+                                          child: Image.asset('assets/images/close.png',color: Colors.white,),
                                         ),
                                       ),),
                                     ],
