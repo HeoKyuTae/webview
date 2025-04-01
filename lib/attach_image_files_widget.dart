@@ -21,7 +21,8 @@ class FileData {
 }
 
 class AttachImageFilesWidget extends StatefulWidget {
-  const AttachImageFilesWidget({super.key});
+  final Function(List, List, bool) onValueChanged;
+  const AttachImageFilesWidget({super.key, required this.onValueChanged});
 
   @override
   State<AttachImageFilesWidget> createState() => _AttachImageFilesWidgetState();
@@ -102,6 +103,7 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
     }
 
     setState(() {});
+    updateInfo();
   }
 
   bool checkOverflowSize(int fileSize) {
@@ -212,6 +214,11 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
     }
 
     setState(() {});
+    updateInfo();
+  }
+
+  void updateInfo() {
+    widget.onValueChanged(imageList, files, isCheck);
   }
 
   @override
@@ -333,26 +340,22 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
                                               imageList[index].path,
                                             );
 
-                                            if (result == true) {
-                                              setState(() {
-                                                imageList.removeAt(index);
-                                              });
-                                            }
-                                          },
-                                          child: Container(
-                                            width: 25,
-                                            height: 25,
-                                            padding: EdgeInsets.all(6),
-                                            decoration: BoxDecoration(
-                                              color: _themeColor.themeColor,
-                                              borderRadius:
-                                                  BorderRadius.circular(
-                                                32,
-                                              ),
-                                            ),
-                                            child: Image.asset(
-                                              'assets/images/close.png',
-                                              color: Colors.white,
+                                          if (result == true) {
+                                            setState(() {
+                                              imageList.removeAt(index);
+                                            });
+                                          }
+
+                                          updateInfo();
+                                        },
+                                        child: Container(
+                                          width: 25,
+                                          height: 25,
+                                          padding: EdgeInsets.all(6),
+                                          decoration: BoxDecoration(
+                                            color: _themeColor.themeColor,
+                                            borderRadius: BorderRadius.circular(
+                                              32,
                                             ),
                                           ),
                                         ),
@@ -452,6 +455,7 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
                   setState(() {
                     isCheck = !isCheck;
                   });
+                  updateInfo();
                 },
                 child: SizedBox(
                   height: 44,

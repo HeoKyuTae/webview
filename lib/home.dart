@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:webconnect/check_view.dart';
 import 'package:webconnect/theme_color.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'infomation_contact.dart';
@@ -16,9 +17,51 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   WebViewController controller = WebViewController();
   ThemeColor _themeColor = ThemeColor();
-
   String code = '';
   String title = '';
+
+  /* 주소록 - 성명, 전화번호 */
+  String name = '';
+  String number = '';
+
+  /* 첨부파일 - 이미지, 파일, 심사 고객동의 */
+  List imageList = [];
+  List fileList = [];
+  bool check = false;
+
+  void updateContactInfo(String newName, String newNumber) {
+    setState(() {
+      name = newName;
+      number = newNumber;
+    });
+  }
+
+  void updateFileInfo(List newImageList, List newFileTitle, bool newCheck) {
+    setState(() {
+      imageList = newImageList;
+      fileList = newFileTitle;
+      check = newCheck;
+    });
+  }
+
+  void checkView() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder:
+            (context) => CheckView(
+              code: code,
+              title: title,
+              name: name,
+              number: number,
+              imageList: imageList,
+              fileList: fileList,
+              check: check,
+            ),
+        fullscreenDialog: true,
+      ),
+    );
+  }
 
   Future<void> _showMyDialog() async {
     return showDialog<void>(
@@ -79,9 +122,11 @@ class _HomeState extends State<Home> {
                         children: [
                           Info(code: code, title: title),
                           Divider(color: Colors.grey, thickness: 0.1),
-                          InfomationContact(),
+                          InfomationContact(onValueChanged: updateContactInfo),
                           Divider(color: Colors.grey, thickness: 0.1),
-                          AttachImageFilesWidget(),
+                          AttachImageFilesWidget(
+                            onValueChanged: updateFileInfo,
+                          ),
                         ],
                       ),
                     ),
@@ -99,6 +144,13 @@ class _HomeState extends State<Home> {
                     ),
                     onPressed: () {
                       // Navigator.pop(context);
+                      print('name: $name');
+                      print('number: $number');
+                      print('imageList length: ${imageList.length}');
+                      print('fileList length: ${fileList.length}');
+                      print('check(심사동의): $check');
+
+                      checkView();
                     },
                     child: Text(
                       '요청하기',
