@@ -1,9 +1,11 @@
 import 'dart:io';
+import 'dart:math';
 import 'package:path/path.dart' as path;
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:webconnect/alert.dart';
+import 'package:webconnect/snack.dart';
 import 'package:webconnect/theme_color.dart';
 
 class FileData {
@@ -55,21 +57,55 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
   Future<void> getImage() async {
     var result = imageList.length + files.length;
 
+    List<XFile> selectedImages = [];
+
+    /// 1. 사진 선택하기
     if (result == 4) {
       XFile? image = await singleImagePicker();
       if (image != null) {
-        imageList.add(image);
+        selectedImages.add(image);
       }
     } else {
       List<XFile> images = await multiImagePicker(5 - result);
       if (images.isNotEmpty) {
-        for (var image in images) {
-          imageList.add(image);
-        }
+        selectedImages.addAll(images);
       }
     }
 
+    /// 2. 선택한 사진 용량 체크
+    List<XFile> overflowFiles = [];
+    for (var image in selectedImages) {
+      int length = await image.length();
+      if (checkOverflowSize(length)) {
+        overflowFiles.add(image);
+      }
+    }
+
+    List<XFile> validImages = selectedImages;
+    if (overflowFiles.isNotEmpty && mounted) {
+      Snack().showTopSnackBar(context, '1MB 넘는 첨부 이미지는 자동 제외되었습니다.');
+      validImages = selectedImages.where((element) {
+        return !overflowFiles.contains(element);
+      }).toList();
+    }
+
+    /// 3. 안드로이드 일 때는 갯수 체크
+    final List<XFile> subImages;
+    if (Platform.isAndroid) {
+      subImages = validImages.sublist(0, min(5 - result, validImages.length));
+    } else {
+      subImages = validImages;
+    }
+
+    for (var image in subImages) {
+      imageList.add(image);
+    }
+
     setState(() {});
+  }
+
+  bool checkOverflowSize(int fileSize) {
+    return fileSize > 1 * 1024 * 1024;
   }
 
   void bottomSheetMenu() {
@@ -102,7 +138,7 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
                       children: [
                         Expanded(
                           child: InkWell(
-                            onTap: () async {
+                            onTap: () {
                               getImage();
                               Navigator.pop(context);
                             },
@@ -164,7 +200,15 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
       File file = File(resultFiles.files.single.path!);
       String fileName = path.basename(file.path);
 
-      files.add(FileData(fileName: fileName, file: file));
+      int fileSize = await file.length();
+
+      if (checkOverflowSize(fileSize)) {
+        if (mounted) {
+          Alert().showAlertDialog(context, '첨부파일의 최대 용량은 1MB 입니다.');
+        }
+      } else {
+        files.add(FileData(fileName: fileName, file: file));
+      }
     }
 
     setState(() {});
@@ -238,87 +282,90 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
               imageList.isEmpty
                   ? SizedBox()
                   : Container(
-                    height: 68,
-                    padding: EdgeInsets.fromLTRB(8, 0, 0, 0),
-                    child: Column(
-                      children: [
-                        SizedBox(height: 8),
-                        Expanded(
-                          child: ListView.builder(
-                            scrollDirection: Axis.horizontal,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemCount: imageList.length,
-                            itemBuilder: (context, index) {
-                              return SizedBox(
-                                width: 60,
-                                height: 60,
-                                child: Stack(
-                                  alignment: Alignment.center,
-                                  children: [
-                                    Container(
-                                      width: 50,
-                                      height: 50,
-                                      decoration: BoxDecoration(
-                                        border: Border.all(
-                                          color: Colors.black.withAlpha(150),
+                      height: 68,
+                      padding: EdgeInsets.fromLTRB(8, 0, 0, 0),
+                      child: Column(
+                        children: [
+                          SizedBox(height: 8),
+                          Expanded(
+                            child: ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: imageList.length,
+                              itemBuilder: (context, index) {
+                                return SizedBox(
+                                  width: 60,
+                                  height: 60,
+                                  child: Stack(
+                                    alignment: Alignment.center,
+                                    children: [
+                                      Container(
+                                        width: 50,
+                                        height: 50,
+                                        decoration: BoxDecoration(
+                                          border: Border.all(
+                                            color: Colors.black.withAlpha(150),
+                                          ),
+                                          borderRadius:
+                                              BorderRadius.circular(8),
                                         ),
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(8),
-                                        child: Image.file(
-                                          File(imageList[index].path),
-                                          fit: BoxFit.cover,
+                                        child: ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                          child: Image.file(
+                                            File(imageList[index].path),
+                                            fit: BoxFit.cover,
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                    Positioned(
-                                      top: 0,
-                                      right: 0,
-                                      child: GestureDetector(
-                                        onTap: () async {
-                                          if (imageList.isEmpty) {
-                                            return;
-                                          }
+                                      Positioned(
+                                        top: 0,
+                                        right: 0,
+                                        child: GestureDetector(
+                                          onTap: () async {
+                                            if (imageList.isEmpty) {
+                                              return;
+                                            }
 
-                                          bool? result = await Alert()
-                                              .showRemoveImageAlertDialog(
-                                                context,
-                                                imageList[index].path,
-                                              );
+                                            bool? result = await Alert()
+                                                .showRemoveImageAlertDialog(
+                                              context,
+                                              imageList[index].path,
+                                            );
 
-                                          if (result == true) {
-                                            setState(() {
-                                              imageList.removeAt(index);
-                                            });
-                                          }
-                                        },
-                                        child: Container(
-                                          width: 25,
-                                          height: 25,
-                                          padding: EdgeInsets.all(6),
-                                          decoration: BoxDecoration(
-                                            color: _themeColor.themeColor,
-                                            borderRadius: BorderRadius.circular(
-                                              32,
+                                            if (result == true) {
+                                              setState(() {
+                                                imageList.removeAt(index);
+                                              });
+                                            }
+                                          },
+                                          child: Container(
+                                            width: 25,
+                                            height: 25,
+                                            padding: EdgeInsets.all(6),
+                                            decoration: BoxDecoration(
+                                              color: _themeColor.themeColor,
+                                              borderRadius:
+                                                  BorderRadius.circular(
+                                                32,
+                                              ),
+                                            ),
+                                            child: Image.asset(
+                                              'assets/images/close.png',
+                                              color: Colors.white,
                                             ),
                                           ),
-                                          child: Image.asset(
-                                            'assets/images/close.png',
-                                            color: Colors.white,
-                                          ),
                                         ),
                                       ),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
               Container(
                 alignment: Alignment.topCenter,
                 child: ListView.builder(
@@ -346,11 +393,11 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
                                   return;
                                 }
 
-                                bool? result = await Alert()
-                                    .showRemoveFileAlertDialog(
-                                      context,
-                                      data.fileName,
-                                    );
+                                bool? result =
+                                    await Alert().showRemoveFileAlertDialog(
+                                  context,
+                                  data.fileName,
+                                );
 
                                 if (result == true) {
                                   setState(() {
@@ -420,10 +467,9 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
                           ),
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child:
-                            isCheck
-                                ? Image.asset('assets/images/check.png')
-                                : SizedBox(),
+                        child: isCheck
+                            ? Image.asset('assets/images/check.png')
+                            : SizedBox(),
                       ),
                       SizedBox(width: 8),
                       Expanded(

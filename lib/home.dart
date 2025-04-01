@@ -17,7 +17,6 @@ class _HomeState extends State<Home> {
   WebViewController controller = WebViewController();
   ThemeColor _themeColor = ThemeColor();
 
-  bool isOpen = false;
   String code = '';
   String title = '';
 
@@ -56,9 +55,6 @@ class _HomeState extends State<Home> {
                     right: 0,
                     child: InkWell(
                       onTap: () {
-                        setState(() {
-                          isOpen = !isOpen;
-                        });
                         Navigator.of(context).pop();
                       },
                       child: Container(
@@ -81,10 +77,7 @@ class _HomeState extends State<Home> {
                       width: size.width,
                       child: Column(
                         children: [
-                          Info(
-                            code: code,
-                            title: title,
-                          ),
+                          Info(code: code, title: title),
                           Divider(color: Colors.grey, thickness: 0.1),
                           InfomationContact(),
                           Divider(color: Colors.grey, thickness: 0.1),
@@ -105,7 +98,6 @@ class _HomeState extends State<Home> {
                       minimumSize: Size(200, 35),
                     ),
                     onPressed: () {
-                      // isOpen = !isOpen;
                       // Navigator.pop(context);
                     },
                     child: Text(
@@ -145,13 +137,7 @@ class _HomeState extends State<Home> {
 
                 debugPrint('Flutter에서 받은 데이터: code=$code, title=$title');
 
-                setState(() {
-                  isOpen = !isOpen;
-
-                  if (isOpen) {
-                    _showMyDialog();
-                  }
-                });
+                _showMyDialog();
               }
             },
           )
