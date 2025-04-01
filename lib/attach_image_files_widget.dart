@@ -359,7 +359,7 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
                                             ),
                                           ),
                                         ),
-                                      ),
+                                      ),),
                                     ],
                                   ),
                                 );
