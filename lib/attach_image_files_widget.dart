@@ -84,7 +84,7 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
 
     List<XFile> validImages = selectedImages;
     if (overflowFiles.isNotEmpty && mounted) {
-      Snack().showTopSnackBar(context, '1MB 넘는 첨부 이미지는 자동 제외되었습니다.');
+      Snack().showTopSnackBar(context, '1MB 넘는 첨부 이미지는 자동 제외 되었습니다.');
       validImages = selectedImages.where((element) {
         return !overflowFiles.contains(element);
       }).toList();

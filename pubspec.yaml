@@ -35,7 +35,6 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
   webview_flutter: ^4.10.0
-  multi_image_picker_view: ^3.0.0
   flutter_contacts: ^1.1.9+2
   image_picker: ^1.1.2
   file_picker: ^9.2.3
