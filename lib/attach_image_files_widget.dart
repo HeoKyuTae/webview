@@ -1,12 +1,11 @@
 import 'dart:io';
-import 'dart:math';
 import 'package:path/path.dart' as path;
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:webconnect/alert.dart';
 import 'package:webconnect/image_preview.dart';
-import 'package:webconnect/snack.dart';
+import 'package:webconnect/privacy_view.dart';
 import 'package:webconnect/theme_color.dart';
 
 class FileData {
@@ -196,7 +195,9 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
         final result = await Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => ImagePreview(images: images, count: 5 - resultCount),
+            builder:
+                (context) =>
+                    ImagePreview(images: images, count: 5 - resultCount),
             fullscreenDialog: true,
           ),
         );
@@ -210,7 +211,7 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
         }
       }
     } else {
-      PhotoManager.openSetting(); // 권한 거부 시 설정으로 이동
+      PhotoManager.openSetting();
     }
   }
 
@@ -451,18 +452,18 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              InkWell(
-                onTap: () {
-                  setState(() {
-                    isCheck = !isCheck;
-                  });
-                  updateInfo();
-                },
-                child: SizedBox(
-                  height: 44,
-                  child: Row(
-                    children: [
-                      Container(
+              SizedBox(
+                height: 44,
+                child: Row(
+                  children: [
+                    InkWell(
+                      onTap: () {
+                        setState(() {
+                          isCheck = !isCheck;
+                        });
+                        updateInfo();
+                      },
+                      child: Container(
                         width: 21,
                         height: 21,
                         decoration: BoxDecoration(
@@ -477,15 +478,38 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
                                 ? Image.asset('assets/images/check.png')
                                 : SizedBox(),
                       ),
-                      SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          '심사조회를 위해 고객 동의를 확인하였습니다.',
-                          style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        '심사조회를 위해 고객 동의를 확인하였습니다.',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                    InkWell(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => PrivacyView(),
+                            fullscreenDialog: true,
+                          ),
+                        );
+                      },
+                      child: Container(
+                        child: Text(
+                          '[보기]',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
               Text(

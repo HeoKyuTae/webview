@@ -54,7 +54,7 @@ class _SearchContactViewState extends State<SearchContactView> {
           child: Column(
             children: [
               Container(
-                height: 30,
+                height: 44,
                 padding: EdgeInsets.fromLTRB(21, 0, 16, 0),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.end,
@@ -64,7 +64,7 @@ class _SearchContactViewState extends State<SearchContactView> {
                         Navigator.pop(context);
                       },
                       child: Container(
-                         width: 30,
+                        width: 30,
                         height: 30,
                         padding: EdgeInsets.all(4),
                         child: Image.asset('assets/images/close.png'),

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:photo_manager/photo_manager.dart';
+import 'package:webconnect/snack.dart';
 import 'package:webconnect/theme_color.dart';
 
 class ImagePreview extends StatefulWidget {
@@ -16,7 +17,7 @@ class ImagePreview extends StatefulWidget {
 class _ImagePreviewState extends State<ImagePreview> {
   ThemeColor _themeColor = ThemeColor();
   int selectedCount = 0;
-  List<File> images = [];
+  List<File> setImages = [];
   List<File> getImages = [];
   List<bool> selectedImages = [];
 
@@ -53,23 +54,25 @@ class _ImagePreviewState extends State<ImagePreview> {
             children: [
               Container(
                 height: 44,
+                padding: EdgeInsets.fromLTRB(21, 0, 16, 0),
                 child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    ElevatedButton(
-                      onPressed: () {
+                    GestureDetector(
+                      onTap: () {
                         Navigator.pop(context);
                       },
-                      child: Text('close'),
-                    ),
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(context, images);
-                      },
-                      child: Text('완료'),
+                      child: Container(
+                        width: 30,
+                        height: 30,
+                        padding: EdgeInsets.all(4),
+                        child: Image.asset('assets/images/close.png'),
+                      ),
                     ),
                   ],
                 ),
               ),
+
               Expanded(
                 child: GridView.builder(
                   itemCount: getImages.length,
@@ -84,19 +87,17 @@ class _ImagePreviewState extends State<ImagePreview> {
                       onTap: () {
                         if (widget.count == selectedCount &&
                             !selectedImages[index]) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text("최대 선택 개수를 초과했습니다!")),
-                          );
+                          Snack().showTopSnackBar(context, '최대 선택 개수를 초과했습니다!');
                           return;
                         }
 
                         selectedImages[index] = !selectedImages[index];
 
                         if (selectedImages[index]) {
-                          images.add(getImages[index]);
+                          setImages.add(getImages[index]);
                           selectedCount += 1;
                         } else {
-                          images.remove(getImages[index]);
+                          setImages.remove(getImages[index]);
                           selectedCount -= 1;
                         }
 
@@ -150,6 +151,56 @@ class _ImagePreviewState extends State<ImagePreview> {
                       ),
                     );
                   },
+                ),
+              ),
+              Container(
+                height: 44,
+                child: Column(
+                  children: [
+                    Container(height: 0.1, color: Colors.black),
+                    Expanded(
+                      child: Center(
+                        child: Container(
+                          width: 150,
+                          alignment: Alignment.center,
+                          child: TextButton(
+                            style: TextButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              backgroundColor:
+                                  setImages.isEmpty
+                                      ? Colors.grey
+                                      : _themeColor.themeColor,
+                              minimumSize: Size(
+                                MediaQuery.of(context).size.width,
+                                35,
+                              ),
+                            ),
+                            onPressed: () {
+                              if (setImages.isEmpty) {
+                                Snack().showTopSnackBar(
+                                  context,
+                                  '이미지를 선택해 주십시오',
+                                );
+                                return;
+                              }
+
+                              Navigator.pop(context, setImages);
+                            },
+                            child: Text(
+                              '선택 완료',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
