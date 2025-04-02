@@ -20,9 +20,8 @@ class _SearchContactViewState extends State<SearchContactView> {
 
   @override
   void initState() {
-    super.initState();
-
     filteredContacts = widget.contacts;
+    super.initState();
   }
 
   // 검색어에 맞게 연락처를 필터링하는 함수

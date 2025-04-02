@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:webconnect/attach_image_files_widget.dart';
 import 'package:webconnect/theme_color.dart';
 

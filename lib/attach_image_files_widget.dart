@@ -3,8 +3,9 @@ import 'dart:math';
 import 'package:path/path.dart' as path;
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:photo_manager/photo_manager.dart';
 import 'package:webconnect/alert.dart';
+import 'package:webconnect/image_preview.dart';
 import 'package:webconnect/snack.dart';
 import 'package:webconnect/theme_color.dart';
 
@@ -30,50 +31,12 @@ class AttachImageFilesWidget extends StatefulWidget {
 
 class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
   ThemeColor _themeColor = ThemeColor();
-  final ImagePicker picker = ImagePicker();
   bool isCheck = false;
-
   var imageList = [];
   var files = [];
 
-  Future<XFile?> singleImagePicker() async {
-    final XFile? pickedImage = await picker.pickImage(
-      source: ImageSource.gallery,
-    );
-
-    if (pickedImage != null) {
-      return pickedImage;
-    }
-
-    return null;
-  }
-
-  Future<List<XFile>> multiImagePicker(int pickCount) async {
-    final List<XFile> selectedImages = await picker.pickMultiImage(
-      limit: pickCount,
-    );
-    return selectedImages;
-  }
-
-  Future<void> getImage() async {
-    var result = imageList.length + files.length;
-
-    List<XFile> selectedImages = [];
-
-    /// 1. 사진 선택하기
-    if (result == 4) {
-      XFile? image = await singleImagePicker();
-      if (image != null) {
-        selectedImages.add(image);
-      }
-    } else {
-      List<XFile> images = await multiImagePicker(5 - result);
-      if (images.isNotEmpty) {
-        selectedImages.addAll(images);
-      }
-    }
-
-    /// 2. 선택한 사진 용량 체크
+  /*
+  /// 2. 선택한 사진 용량 체크
     List<XFile> overflowFiles = [];
     for (var image in selectedImages) {
       int length = await image.length();
@@ -85,26 +48,12 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
     List<XFile> validImages = selectedImages;
     if (overflowFiles.isNotEmpty && mounted) {
       Snack().showTopSnackBar(context, '1MB 넘는 첨부 이미지는 자동 제외 되었습니다.');
-      validImages = selectedImages.where((element) {
-        return !overflowFiles.contains(element);
-      }).toList();
+      validImages =
+          selectedImages.where((element) {
+            return !overflowFiles.contains(element);
+          }).toList();
     }
-
-    /// 3. 안드로이드 일 때는 갯수 체크
-    final List<XFile> subImages;
-    if (Platform.isAndroid) {
-      subImages = validImages.sublist(0, min(5 - result, validImages.length));
-    } else {
-      subImages = validImages;
-    }
-
-    for (var image in subImages) {
-      imageList.add(image);
-    }
-
-    setState(() {});
-    updateInfo();
-  }
+*/
 
   bool checkOverflowSize(int fileSize) {
     return fileSize > 1 * 1024 * 1024;
@@ -141,7 +90,7 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
                         Expanded(
                           child: InkWell(
                             onTap: () {
-                              getImage();
+                              loadImages();
                               Navigator.pop(context);
                             },
                             child: Container(
@@ -221,6 +170,55 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
     widget.onValueChanged(imageList, files, isCheck);
   }
 
+  // =-=-=-=-=-=-=-=-=
+
+  List<AssetEntity> images = [];
+
+  Future<void> loadImages() async {
+    var resultCount = imageList.length + files.length;
+
+    final PermissionState permission =
+        await PhotoManager.requestPermissionExtend();
+    if (permission.isAuth) {
+      List<AssetPathEntity> albums = await PhotoManager.getAssetPathList(
+        type: RequestType.image,
+      );
+
+      if (albums.isNotEmpty) {
+        List<AssetEntity> media = await albums[0].getAssetListPaged(
+          page: 0,
+          size: 5,
+        ); // 최대 5개
+        setState(() {
+          images = media;
+        });
+
+        final result = await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ImagePreview(images: images, count: 5 - resultCount),
+            fullscreenDialog: true,
+          ),
+        );
+
+        if (result != null) {
+          setState(() {
+            imageList.addAll(result);
+          });
+
+          updateInfo();
+        }
+      }
+    } else {
+      PhotoManager.openSetting(); // 권한 거부 시 설정으로 이동
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -289,56 +287,54 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
               imageList.isEmpty
                   ? SizedBox()
                   : Container(
-                      height: 68,
-                      padding: EdgeInsets.fromLTRB(8, 0, 0, 0),
-                      child: Column(
-                        children: [
-                          SizedBox(height: 8),
-                          Expanded(
-                            child: ListView.builder(
-                              scrollDirection: Axis.horizontal,
-                              physics: const NeverScrollableScrollPhysics(),
-                              itemCount: imageList.length,
-                              itemBuilder: (context, index) {
-                                return SizedBox(
-                                  width: 60,
-                                  height: 60,
-                                  child: Stack(
-                                    alignment: Alignment.center,
-                                    children: [
-                                      Container(
-                                        width: 50,
-                                        height: 50,
-                                        decoration: BoxDecoration(
-                                          border: Border.all(
-                                            color: Colors.black.withAlpha(150),
-                                          ),
-                                          borderRadius:
-                                              BorderRadius.circular(8),
+                    height: 68,
+                    padding: EdgeInsets.fromLTRB(8, 0, 0, 0),
+                    child: Column(
+                      children: [
+                        SizedBox(height: 8),
+                        Expanded(
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: imageList.length,
+                            itemBuilder: (context, index) {
+                              return SizedBox(
+                                width: 60,
+                                height: 60,
+                                child: Stack(
+                                  alignment: Alignment.center,
+                                  children: [
+                                    Container(
+                                      width: 50,
+                                      height: 50,
+                                      decoration: BoxDecoration(
+                                        border: Border.all(
+                                          color: Colors.black.withAlpha(150),
                                         ),
-                                        child: ClipRRect(
-                                          borderRadius:
-                                              BorderRadius.circular(8),
-                                          child: Image.file(
-                                            File(imageList[index].path),
-                                            fit: BoxFit.cover,
-                                          ),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: Image.file(
+                                          File(imageList[index].path),
+                                          fit: BoxFit.cover,
                                         ),
                                       ),
-                                      Positioned(
-                                        top: 0,
-                                        right: 0,
-                                        child: GestureDetector(
-                                          onTap: () async {
-                                            if (imageList.isEmpty) {
-                                              return;
-                                            }
+                                    ),
+                                    Positioned(
+                                      top: 0,
+                                      right: 0,
+                                      child: GestureDetector(
+                                        onTap: () async {
+                                          if (imageList.isEmpty) {
+                                            return;
+                                          }
 
-                                            bool? result = await Alert()
-                                                .showRemoveImageAlertDialog(
-                                              context,
-                                              imageList[index].path,
-                                            );
+                                          bool? result = await Alert()
+                                              .showRemoveImageAlertDialog(
+                                                context,
+                                                imageList[index].path,
+                                              );
 
                                           if (result == true) {
                                             setState(() {
@@ -358,18 +354,22 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
                                               32,
                                             ),
                                           ),
-                                          child: Image.asset('assets/images/close.png',color: Colors.white,),
+                                          child: Image.asset(
+                                            'assets/images/close.png',
+                                            color: Colors.white,
+                                          ),
                                         ),
-                                      ),),
-                                    ],
-                                  ),
-                                );
-                              },
-                            ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
+                  ),
               Container(
                 alignment: Alignment.topCenter,
                 child: ListView.builder(
@@ -397,11 +397,11 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
                                   return;
                                 }
 
-                                bool? result =
-                                    await Alert().showRemoveFileAlertDialog(
-                                  context,
-                                  data.fileName,
-                                );
+                                bool? result = await Alert()
+                                    .showRemoveFileAlertDialog(
+                                      context,
+                                      data.fileName,
+                                    );
 
                                 if (result == true) {
                                   setState(() {
@@ -472,9 +472,10 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
                           ),
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: isCheck
-                            ? Image.asset('assets/images/check.png')
-                            : SizedBox(),
+                        child:
+                            isCheck
+                                ? Image.asset('assets/images/check.png')
+                                : SizedBox(),
                       ),
                       SizedBox(width: 8),
                       Expanded(
