@@ -22,7 +22,14 @@ class FileData {
 
 class AttachImageFilesWidget extends StatefulWidget {
   final Function(List, List, bool) onValueChanged;
-  const AttachImageFilesWidget({super.key, required this.onValueChanged});
+  final int imgCount;
+  final int fileCount;
+  const AttachImageFilesWidget({
+    super.key,
+    required this.onValueChanged,
+    required this.imgCount,
+    required this.fileCount,
+  });
 
   @override
   State<AttachImageFilesWidget> createState() => _AttachImageFilesWidgetState();
@@ -89,6 +96,16 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
                         Expanded(
                           child: InkWell(
                             onTap: () {
+                              var result = imageList.length;
+
+                              if (result >= widget.imgCount) {
+                                Alert().showAlertDialog(
+                                  context,
+                                  '이미지 파일 첨부는 ${widget.imgCount}개 까지 가능합니다.',
+                                );
+                                return;
+                              }
+
                               loadImages();
                               Navigator.pop(context);
                             },
@@ -112,6 +129,16 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
                         Expanded(
                           child: InkWell(
                             onTap: () {
+                              var result = files.length;
+
+                              if (result >= widget.fileCount) {
+                                Alert().showAlertDialog(
+                                  context,
+                                  '파일 첨부는 ${widget.fileCount}개 까지 가능합니다.',
+                                );
+                                return;
+                              }
+
                               getFile();
                               Navigator.pop(context);
                             },
@@ -144,7 +171,9 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
   }
 
   Future<void> getFile() async {
-    FilePickerResult? resultFiles = await FilePicker.platform.pickFiles();
+    FilePickerResult? resultFiles = await FilePicker.platform.pickFiles(
+      allowMultiple: true,
+    );
 
     if (resultFiles != null) {
       File file = File(resultFiles.files.single.path!);
@@ -174,7 +203,7 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
   List<AssetEntity> images = [];
 
   Future<void> loadImages() async {
-    var resultCount = imageList.length + files.length;
+    var resultCount = imageList.length;
 
     final PermissionState permission =
         await PhotoManager.requestPermissionExtend();
@@ -186,8 +215,8 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
       if (albums.isNotEmpty) {
         List<AssetEntity> media = await albums[0].getAssetListPaged(
           page: 0,
-          size: 5,
-        ); // 최대 5개
+          size: 10000,
+        );
         setState(() {
           images = media;
         });
@@ -196,8 +225,10 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
           context,
           MaterialPageRoute(
             builder:
-                (context) =>
-                    ImagePreview(images: images, count: 5 - resultCount),
+                (context) => ImagePreview(
+                  images: images,
+                  count: widget.imgCount - resultCount,
+                ),
             fullscreenDialog: true,
           ),
         );
@@ -261,16 +292,6 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
                           ),
                         ),
                         onPressed: () {
-                          var result = imageList.length + files.length;
-
-                          if (result >= 5) {
-                            Alert().showAlertDialog(
-                              context,
-                              '첨부파일은 5개 까지 가능합니다.',
-                            );
-                            return;
-                          }
-
                           bottomSheetMenu();
                         },
                         child: Text(
@@ -499,7 +520,7 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
                           ),
                         );
                       },
-                      child: Container(
+                      child: SizedBox(
                         child: Text(
                           '[보기]',
                           style: TextStyle(

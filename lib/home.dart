@@ -19,6 +19,8 @@ class _HomeState extends State<Home> {
   ThemeColor _themeColor = ThemeColor();
   String code = '';
   String title = '';
+  int imgCount = 0;
+  int fileCount = 0;
 
   /* 주소록 - 성명, 전화번호 */
   String name = '';
@@ -126,6 +128,8 @@ class _HomeState extends State<Home> {
                           Divider(color: Colors.grey, thickness: 0.1),
                           AttachImageFilesWidget(
                             onValueChanged: updateFileInfo,
+                            imgCount: imgCount,
+                            fileCount: fileCount,
                           ),
                         ],
                       ),
@@ -186,6 +190,8 @@ class _HomeState extends State<Home> {
                 final Map<String, dynamic> data = jsonDecode(message.message);
                 code = data['code'];
                 title = data['title'];
+                imgCount = data['imgCount'];
+                fileCount = data['fileCount'];
 
                 debugPrint('Flutter에서 받은 데이터: code=$code, title=$title');
 
@@ -208,19 +214,24 @@ class _HomeState extends State<Home> {
           <button onclick="sendMessageToFlutter()">Send to Flutter</button>
           <script>
             function sendMessageToFlutter() {
+            const codeText = document.getElementById("code").innerText;
+            const titleText = document.getElementById("title").innerText;
+
               if (window.FlutterChannel) {
                  const data = {
-                    code: "20250331_0001",
-                    title: "견적을 부탁 드립니다."
-                };
+                    code: codeText,
+                    title: titleText,
+                    imgCount: 5,
+                    fileCount: 3,
+                  };
                 window.FlutterChannel.postMessage(JSON.stringify(data));
               } else {
                 console.log("FlutterChannel is not available.");
               }
             }
           </script>
-          <p>code: 20250331_0001</p>
-          <p>title: 견적을 부탁 드립니다.</p>
+          <p id="code">20250331_0001</p>
+          <p id="title">견적을 부탁 드립니다.</p>
         </body>
         </html>
         """,
