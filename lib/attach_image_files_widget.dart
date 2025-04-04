@@ -207,7 +207,8 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
 
     final PermissionState permission =
         await PhotoManager.requestPermissionExtend();
-    if (permission.isAuth) {
+
+    if (permission.isAuth || permission.hasAccess) {
       List<AssetPathEntity> albums = await PhotoManager.getAssetPathList(
         type: RequestType.image,
       );
