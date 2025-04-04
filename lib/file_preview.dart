@@ -1,7 +1,10 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:webconnect/alert.dart';
 import 'package:webconnect/attach_image_files_widget.dart';
+import 'package:webconnect/snack.dart';
+import 'package:webconnect/theme_color.dart';
 
 class FilePreview extends StatefulWidget {
   final List files;
@@ -12,6 +15,43 @@ class FilePreview extends StatefulWidget {
 }
 
 class _FilePreviewState extends State<FilePreview> {
+  ThemeColor _themeColor = ThemeColor();
+  int count = 3;
+  List<FileData> imageFiles = [];
+  List<FileData> documentFiles = [];
+
+  @override
+  void initState() {
+    imageFiles.clear();
+    documentFiles.cast();
+
+    _splitFiles();
+    super.initState();
+  }
+
+  void _splitFiles() {
+    for (var item in widget.files) {
+      final ext = item.fileName.split('.').last.toLowerCase();
+
+      // 이미지 확장자 판별
+      if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'heic'].contains(ext)) {
+        imageFiles.add(item);
+      } else {
+        documentFiles.add(item);
+      }
+    }
+  }
+
+  calc(int img, int doc, int c) {
+    int result = (img + doc) - c;
+
+    if (result > 0) {
+      return '$result개의 첨부파일이 초과 되었습니다.';
+    } else {
+      return '';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -20,17 +60,234 @@ class _FilePreviewState extends State<FilePreview> {
         child: Container(
           child: Column(
             children: [
-              Container(height: 44),
+              Container(
+                height: 44,
+                padding: EdgeInsets.fromLTRB(16, 0, 16, 0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Expanded(
+                      child: Container(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          calc(imageFiles.length, documentFiles.length, count),
+                        ),
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () async {
+                        bool? result = await Alert().showLeaveAlertDialog(
+                          context,
+                        );
+
+                        if (result == true) {
+                          Navigator.pop(context);
+                        }
+                      },
+                      child: Container(
+                        width: 30,
+                        height: 30,
+                        padding: EdgeInsets.all(4),
+                        child: Image.asset('assets/images/close.png'),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
               Expanded(
-                child: ListView.builder(
-                  itemCount: widget.files.length,
-                  itemBuilder: (context, index) {
-                    FileData item = widget.files[index];
-                    return InkWell(
-                      onTap: () {},
-                      child: Container(child: Image.file(File(item.file.path))),
-                    );
-                  },
+                child: Container(
+                  child: SingleChildScrollView(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                padding: EdgeInsets.fromLTRB(16, 2, 16, 2),
+                                decoration: BoxDecoration(
+                                  color: _themeColor.themeColor,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  '이미지 파일',
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                              SizedBox(height: 8),
+                              GridView.builder(
+                                physics: const NeverScrollableScrollPhysics(),
+                                shrinkWrap: true,
+                                itemCount: imageFiles.length,
+                                gridDelegate:
+                                    SliverGridDelegateWithFixedCrossAxisCount(
+                                      crossAxisCount: 3,
+                                      childAspectRatio: 1,
+                                      mainAxisSpacing: 1,
+                                      crossAxisSpacing: 1,
+                                    ),
+                                itemBuilder: (BuildContext context, int index) {
+                                  FileData item = imageFiles[index];
+
+                                  return Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      border: Border.all(
+                                        color: Colors.black,
+                                        width: 0.1,
+                                      ),
+                                    ),
+                                    child: AspectRatio(
+                                      aspectRatio: 1,
+                                      child: SizedBox(
+                                        child: Image.file(
+                                          File(item.file.path),
+                                          fit: BoxFit.cover,
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                              SizedBox(height: 32),
+                            ],
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                padding: EdgeInsets.fromLTRB(16, 2, 16, 2),
+                                decoration: BoxDecoration(
+                                  color: _themeColor.themeColor,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  '기타 파일',
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                              SizedBox(height: 8),
+                              ListView.builder(
+                                physics: const NeverScrollableScrollPhysics(),
+                                shrinkWrap: true,
+                                itemCount: documentFiles.length,
+                                itemBuilder: (context, index) {
+                                  FileData item = documentFiles[index];
+
+                                  return Padding(
+                                    padding: const EdgeInsets.fromLTRB(
+                                      0,
+                                      8,
+                                      0,
+                                      0,
+                                    ),
+                                    child: Container(
+                                      height: 44,
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        border: Border.all(
+                                          color: Colors.grey,
+                                          width: 0.2,
+                                        ),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      padding: EdgeInsets.fromLTRB(0, 0, 8, 0),
+                                      child: Row(
+                                        children: [
+                                          Container(
+                                            width: 44,
+                                            height: 44,
+                                            padding: EdgeInsets.all(15),
+                                            child: Image.asset(
+                                              'assets/images/close.png',
+                                              color: Colors.red,
+                                            ),
+                                          ),
+                                          Expanded(
+                                            child: Text(
+                                              item.fileName,
+                                              style: TextStyle(
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              Container(
+                height: 60,
+                child: Column(
+                  children: [
+                    Container(height: 0.1, color: Colors.black),
+                    Expanded(
+                      child: Center(
+                        child: Container(
+                          width: 150,
+                          alignment: Alignment.center,
+                          child: TextButton(
+                            style: TextButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              backgroundColor:
+                                  count <
+                                          imageFiles.length +
+                                              documentFiles.length
+                                      ? Colors.grey
+                                      : _themeColor.themeColor,
+                              minimumSize: Size(
+                                MediaQuery.of(context).size.width,
+                                35,
+                              ),
+                            ),
+                            onPressed: () {
+                              if (count <
+                                  imageFiles.length + documentFiles.length) {
+                                Snack().showTopSnackBar(
+                                  context,
+                                  calc(imageFiles.length, documentFiles.length, count),
+                                );
+                                return;
+                              }
+
+                              Navigator.pop(context, [
+                                ...imageFiles,
+                                ...documentFiles,
+                              ]);
+                            },
+                            child: Text(
+                              '선택 완료',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],

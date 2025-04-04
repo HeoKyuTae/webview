@@ -72,7 +72,6 @@ class _ImagePreviewState extends State<ImagePreview> {
                   ],
                 ),
               ),
-
               Expanded(
                 child: GridView.builder(
                   itemCount: getImages.length,
@@ -154,7 +153,7 @@ class _ImagePreviewState extends State<ImagePreview> {
                 ),
               ),
               Container(
-                height: 44,
+                height: 60,
                 child: Column(
                   children: [
                     Container(height: 0.1, color: Colors.black),

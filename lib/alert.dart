@@ -38,6 +38,59 @@ class Alert {
     );
   }
 
+  Future<bool?> showLeaveAlertDialog(BuildContext context) {
+    return showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('알림'),
+          content: SizedBox(
+            width: 250,
+            height: 44,
+            child: Column(
+              children: [
+                Text('첨부된 파일이 초기화 됩니다.',style: TextStyle(fontSize: 15, color: _themeColor.themeColor),),
+              ],
+            ),
+          ),
+          backgroundColor: Colors.white,
+          insetPadding: EdgeInsets.all(16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(8.0)),
+          ),
+          actions: [
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.grey,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              onPressed: () {
+                Navigator.pop(context, false);
+              },
+              child: const Text('취소'),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _themeColor.themeColor,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              onPressed: () {
+                Navigator.pop(context, true);
+              },
+              child: const Text('나가기'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<bool?> showRemoveImageAlertDialog(BuildContext context, String file) {
     return showDialog<bool>(
       context: context,

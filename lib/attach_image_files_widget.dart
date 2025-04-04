@@ -11,7 +11,6 @@ import 'package:webconnect/theme_color.dart';
 
 class FileData {
   final String fileName;
-  // final Uint8List fileBytes;
   final File file;
 
   FileData({required this.fileName, required this.file});
@@ -40,7 +39,8 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
   ThemeColor _themeColor = ThemeColor();
   bool isCheck = false;
   var imageList = [];
-  var files = [];
+  var getFiles = [];
+  var setFiles = [];
 
   /*
   /// 2. 선택한 사진 용량 체크
@@ -130,7 +130,7 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
                         Expanded(
                           child: InkWell(
                             onTap: () {
-                              var result = files.length;
+                              var result = setFiles.length;
 
                               if (result >= widget.fileCount) {
                                 Alert().showAlertDialog(
@@ -195,21 +195,24 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
         }
         */
 
-        files.add(FileData(fileName: fileName, file: file));
+        getFiles.add(FileData(fileName: fileName, file: file));
       }
 
       final result = await Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => FilePreview(files: files),
+          builder: (context) => FilePreview(files: getFiles),
           fullscreenDialog: true,
         ),
       );
 
+      setState(() {
+        getFiles.clear();
+      });
+
       if (result != null) {
         setState(() {
-          files.clear();
-          files.addAll(result);
+          setFiles.addAll(result);
         });
 
         updateInfo();
@@ -218,7 +221,7 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
   }
 
   void updateInfo() {
-    widget.onValueChanged(imageList, files, isCheck);
+    widget.onValueChanged(imageList, setFiles, isCheck);
   }
 
   // =-=-=-=-=-=-=-=-=
@@ -268,11 +271,6 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
     } else {
       PhotoManager.openSetting();
     }
-  }
-
-  @override
-  void initState() {
-    super.initState();
   }
 
   @override
@@ -418,154 +416,66 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
                   ),
               Container(
                 alignment: Alignment.topCenter,
-                child: Column(
-                  children: [
-                    files.isEmpty
-                        ? SizedBox()
-                        : Container(
-                          height: 68,
-                          color: Colors.red,
-                          child: ListView.builder(
-                            scrollDirection: Axis.horizontal,
-                            itemCount: files.length,
-                            itemBuilder: (context, index) {
-                              FileData data = files[index];
-                              print(data.fileName);
-                              return SizedBox(
-                                width: 60,
-                                height: 60,
-                                child: Stack(
-                                  alignment: Alignment.center,
-                                  children: [
-                                    Container(
-                                      width: 50,
-                                      height: 50,
-                                      decoration: BoxDecoration(
-                                        border: Border.all(
-                                          color: Colors.black.withAlpha(150),
-                                        ),
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(8),
-                                        // child: Image.file(
-                                        //   File(files[index].path),
-                                        //   fit: BoxFit.cover,
-                                        // ),
-                                        child: Text(data.fileName),
-                                      ),
-                                    ),
-                                    Positioned(
-                                      top: 0,
-                                      right: 0,
-                                      child: GestureDetector(
-                                        onTap: () async {
-                                          if (imageList.isEmpty) {
-                                            return;
-                                          }
+                child: ListView.builder(
+                  physics: const NeverScrollableScrollPhysics(),
+                  shrinkWrap: true,
+                  itemCount: setFiles.length,
+                  itemBuilder: (context, index) {
+                    FileData data = setFiles[index];
 
-                                          bool? result = await Alert()
-                                              .showRemoveImageAlertDialog(
-                                                context,
-                                                imageList[index].path,
-                                              );
-
-                                          if (result == true) {
-                                            setState(() {
-                                              imageList.removeAt(index);
-                                            });
-                                          }
-
-                                          updateInfo();
-                                        },
-                                        child: Container(
-                                          width: 25,
-                                          height: 25,
-                                          padding: EdgeInsets.all(6),
-                                          decoration: BoxDecoration(
-                                            color: _themeColor.themeColor,
-                                            borderRadius: BorderRadius.circular(
-                                              32,
-                                            ),
-                                          ),
-                                          child: Image.asset(
-                                            'assets/images/close.png',
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
-                          ),
+                    return Padding(
+                      padding: const EdgeInsets.fromLTRB(12, 8, 16, 0),
+                      child: Container(
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          border: Border.all(color: Colors.grey, width: 0.2),
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                    ListView.builder(
-                      physics: const NeverScrollableScrollPhysics(),
-                      shrinkWrap: true,
-                      itemCount: files.length,
-                      itemBuilder: (context, index) {
-                        FileData data = files[index];
+                        padding: EdgeInsets.fromLTRB(0, 0, 8, 0),
+                        child: Row(
+                          children: [
+                            InkWell(
+                              onTap: () async {
+                                if (setFiles.isEmpty) {
+                                  return;
+                                }
 
-                        return Padding(
-                          padding: const EdgeInsets.fromLTRB(12, 8, 16, 0),
-                          child: Container(
-                            height: 44,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              border: Border.all(
-                                color: Colors.grey,
-                                width: 0.2,
+                                bool? result = await Alert()
+                                    .showRemoveFileAlertDialog(
+                                      context,
+                                      data.fileName,
+                                    );
+
+                                if (result == true) {
+                                  setState(() {
+                                    setFiles.removeAt(index);
+                                  });
+                                }
+                              },
+                              child: Container(
+                                width: 44,
+                                height: 44,
+                                padding: EdgeInsets.all(15),
+                                child: Image.asset(
+                                  'assets/images/close.png',
+                                  color: Colors.red,
+                                ),
                               ),
-                              borderRadius: BorderRadius.circular(8),
                             ),
-                            padding: EdgeInsets.fromLTRB(0, 0, 8, 0),
-                            child: Row(
-                              children: [
-                                InkWell(
-                                  onTap: () async {
-                                    if (files.isEmpty) {
-                                      return;
-                                    }
-
-                                    bool? result = await Alert()
-                                        .showRemoveFileAlertDialog(
-                                          context,
-                                          data.fileName,
-                                        );
-
-                                    if (result == true) {
-                                      setState(() {
-                                        files.removeAt(index);
-                                      });
-                                    }
-                                  },
-                                  child: Container(
-                                    width: 44,
-                                    height: 44,
-                                    padding: EdgeInsets.all(15),
-                                    child: Image.asset(
-                                      'assets/images/close.png',
-                                      color: Colors.red,
-                                    ),
-                                  ),
+                            Expanded(
+                              child: Text(
+                                data.fileName,
+                                style: TextStyle(
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                                Expanded(
-                                  child: Text(
-                                    data.fileName,
-                                    style: TextStyle(
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ),
-                              ],
+                              ),
                             ),
-                          ),
-                        );
-                      },
-                    ),
-                  ],
+                          ],
+                        ),
+                      ),
+                    );
+                  },
                 ),
               ),
               Container(
