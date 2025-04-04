@@ -4,6 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:webconnect/alert.dart';
+import 'package:webconnect/file_preview.dart';
 import 'package:webconnect/image_preview.dart';
 import 'package:webconnect/privacy_view.dart';
 import 'package:webconnect/theme_color.dart';
@@ -176,22 +177,44 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
     );
 
     if (resultFiles != null) {
-      File file = File(resultFiles.files.single.path!);
-      String fileName = path.basename(file.path);
+      for (PlatformFile platformFile in resultFiles.files) {
+        if (platformFile.path == null) continue;
 
-      int fileSize = await file.length();
+        File file = File(platformFile.path!);
+        String fileName = path.basename(file.path);
 
-      if (checkOverflowSize(fileSize)) {
-        if (mounted) {
-          Alert().showAlertDialog(context, '첨부파일의 최대 용량은 1MB 입니다.');
+        /*
+        int fileSize = await file.length();
+
+        if (checkOverflowSize(fileSize)) {
+          if (mounted) {
+            Alert().showAlertDialog(context, '첨부파일의 최대 용량은 1MB 입니다.');
+          }
+        } else {
+          files.add(FileData(fileName: fileName, file: file));
         }
-      } else {
+        */
+
         files.add(FileData(fileName: fileName, file: file));
       }
-    }
 
-    setState(() {});
-    updateInfo();
+      final result = await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => FilePreview(files: files),
+          fullscreenDialog: true,
+        ),
+      );
+
+      if (result != null) {
+        setState(() {
+          files.clear();
+          files.addAll(result);
+        });
+
+        updateInfo();
+      }
+    }
   }
 
   void updateInfo() {
@@ -395,66 +418,154 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
                   ),
               Container(
                 alignment: Alignment.topCenter,
-                child: ListView.builder(
-                  physics: const NeverScrollableScrollPhysics(),
-                  shrinkWrap: true,
-                  itemCount: files.length,
-                  itemBuilder: (context, index) {
-                    FileData data = files[index];
+                child: Column(
+                  children: [
+                    files.isEmpty
+                        ? SizedBox()
+                        : Container(
+                          height: 68,
+                          color: Colors.red,
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: files.length,
+                            itemBuilder: (context, index) {
+                              FileData data = files[index];
+                              print(data.fileName);
+                              return SizedBox(
+                                width: 60,
+                                height: 60,
+                                child: Stack(
+                                  alignment: Alignment.center,
+                                  children: [
+                                    Container(
+                                      width: 50,
+                                      height: 50,
+                                      decoration: BoxDecoration(
+                                        border: Border.all(
+                                          color: Colors.black.withAlpha(150),
+                                        ),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(8),
+                                        // child: Image.file(
+                                        //   File(files[index].path),
+                                        //   fit: BoxFit.cover,
+                                        // ),
+                                        child: Text(data.fileName),
+                                      ),
+                                    ),
+                                    Positioned(
+                                      top: 0,
+                                      right: 0,
+                                      child: GestureDetector(
+                                        onTap: () async {
+                                          if (imageList.isEmpty) {
+                                            return;
+                                          }
 
-                    return Padding(
-                      padding: const EdgeInsets.fromLTRB(12, 8, 16, 0),
-                      child: Container(
-                        height: 44,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          border: Border.all(color: Colors.grey, width: 0.2),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        padding: EdgeInsets.fromLTRB(0, 0, 8, 0),
-                        child: Row(
-                          children: [
-                            InkWell(
-                              onTap: () async {
-                                if (files.isEmpty) {
-                                  return;
-                                }
+                                          bool? result = await Alert()
+                                              .showRemoveImageAlertDialog(
+                                                context,
+                                                imageList[index].path,
+                                              );
 
-                                bool? result = await Alert()
-                                    .showRemoveFileAlertDialog(
-                                      context,
-                                      data.fileName,
-                                    );
+                                          if (result == true) {
+                                            setState(() {
+                                              imageList.removeAt(index);
+                                            });
+                                          }
 
-                                if (result == true) {
-                                  setState(() {
-                                    files.removeAt(index);
-                                  });
-                                }
-                              },
-                              child: Container(
-                                width: 44,
-                                height: 44,
-                                padding: EdgeInsets.all(15),
-                                child: Image.asset(
-                                  'assets/images/close.png',
-                                  color: Colors.red,
+                                          updateInfo();
+                                        },
+                                        child: Container(
+                                          width: 25,
+                                          height: 25,
+                                          padding: EdgeInsets.all(6),
+                                          decoration: BoxDecoration(
+                                            color: _themeColor.themeColor,
+                                            borderRadius: BorderRadius.circular(
+                                              32,
+                                            ),
+                                          ),
+                                          child: Image.asset(
+                                            'assets/images/close.png',
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ),
-                            ),
-                            Expanded(
-                              child: Text(
-                                data.fileName,
-                                style: TextStyle(
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ),
-                          ],
+                              );
+                            },
+                          ),
                         ),
-                      ),
-                    );
-                  },
+                    ListView.builder(
+                      physics: const NeverScrollableScrollPhysics(),
+                      shrinkWrap: true,
+                      itemCount: files.length,
+                      itemBuilder: (context, index) {
+                        FileData data = files[index];
+
+                        return Padding(
+                          padding: const EdgeInsets.fromLTRB(12, 8, 16, 0),
+                          child: Container(
+                            height: 44,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              border: Border.all(
+                                color: Colors.grey,
+                                width: 0.2,
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            padding: EdgeInsets.fromLTRB(0, 0, 8, 0),
+                            child: Row(
+                              children: [
+                                InkWell(
+                                  onTap: () async {
+                                    if (files.isEmpty) {
+                                      return;
+                                    }
+
+                                    bool? result = await Alert()
+                                        .showRemoveFileAlertDialog(
+                                          context,
+                                          data.fileName,
+                                        );
+
+                                    if (result == true) {
+                                      setState(() {
+                                        files.removeAt(index);
+                                      });
+                                    }
+                                  },
+                                  child: Container(
+                                    width: 44,
+                                    height: 44,
+                                    padding: EdgeInsets.all(15),
+                                    child: Image.asset(
+                                      'assets/images/close.png',
+                                      color: Colors.red,
+                                    ),
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Text(
+                                    data.fileName,
+                                    style: TextStyle(
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
                 ),
               ),
               Container(
