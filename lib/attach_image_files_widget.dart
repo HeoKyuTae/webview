@@ -9,6 +9,22 @@ import 'package:webconnect/image_preview.dart';
 import 'package:webconnect/privacy_view.dart';
 import 'package:webconnect/theme_color.dart';
 
+class AttachConfig {
+  final int imageMaxCount;
+  final int fileMaxCount;
+  final int maxSize;
+
+  AttachConfig({
+    required this.imageMaxCount,
+    required this.fileMaxCount,
+    required this.maxSize,
+  });
+
+  bool checkOverflowSize(int fileSize) {
+    return fileSize > maxSize * 1024 * 1024;
+  }
+}
+
 class FileData {
   final String fileName;
   final File file;
@@ -21,13 +37,12 @@ class FileData {
 
 class AttachImageFilesWidget extends StatefulWidget {
   final Function(List, List, bool) onValueChanged;
-  final int imgCount;
-  final int fileCount;
+  final AttachConfig attachConfig;
+
   const AttachImageFilesWidget({
     super.key,
     required this.onValueChanged,
-    required this.imgCount,
-    required this.fileCount,
+    required this.attachConfig,
   });
 
   @override
@@ -61,7 +76,7 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
     }
 */
 
-  bool checkOverflowSize(int fileSize, ) {
+  bool checkOverflowSize(int fileSize) {
     return fileSize > 1 * 1024 * 1024;
   }
 
@@ -98,10 +113,10 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
                             onTap: () {
                               var result = imageList.length;
 
-                              if (result >= widget.imgCount) {
+                              if (result >= widget.attachConfig.imageMaxCount) {
                                 Alert().showAlertDialog(
                                   context,
-                                  '이미지 파일 첨부는 ${widget.imgCount}개 까지 가능합니다.',
+                                  '이미지 파일 첨부는 ${widget.attachConfig.imageMaxCount}개 까지 가능합니다.',
                                 );
                                 return;
                               }
@@ -130,11 +145,11 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
                           child: InkWell(
                             onTap: () {
                               var result = setFiles.length;
-                              print('파일첨부 개수 : $result');
-                              if (result >= widget.fileCount) {
+
+                              if (result >= widget.attachConfig.fileMaxCount) {
                                 Alert().showAlertDialog(
                                   context,
-                                  '파일 첨부는 ${widget.fileCount}개 까지 가능합니다.',
+                                  '파일 첨부는 ${widget.attachConfig.fileMaxCount}개 까지 가능합니다.',
                                 );
                                 return;
                               }
@@ -184,30 +199,30 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
 
         int fileSize = await file.length();
 
-        if (checkOverflowSize(fileSize)) {
-          // if (mounted) {
-          //   Alert().showAlertDialog(context, '첨부파일의 최대 용량은 1MB 입니다.');
-          // }
-        } else {
+        if (!widget.attachConfig.checkOverflowSize(fileSize)) {
           getFiles.add(FileData(fileName: fileName, file: file));
         }
       }
 
-      var count = (setFiles.length - widget.fileCount) * -1;
+      var overflowCount =
+          (widget.attachConfig.fileMaxCount -
+              (getFiles.length + setFiles.length)) *
+          -1;
 
-      if (widget.fileCount > count) {
+      if (0 < overflowCount) {
         final result = await Navigator.push(
           context,
           MaterialPageRoute(
             builder:
-                (context) => FilePreview(files: getFiles, fileCount: count),
+                (context) => FilePreview(
+                  files: getFiles,
+                  fileCount: widget.attachConfig.fileMaxCount - setFiles.length,
+                ),
             fullscreenDialog: true,
           ),
         );
 
-        setState(() {
-          getFiles.clear();
-        });
+        getFiles.clear();
 
         if (result != null) {
           setState(() {
@@ -250,17 +265,21 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
           page: 0,
           size: 10000,
         );
+
         setState(() {
           images = media;
         });
+
+        print(widget.attachConfig);
 
         final result = await Navigator.push(
           context,
           MaterialPageRoute(
             builder:
                 (context) => ImagePreview(
-                  images: images,
-                  count: widget.imgCount - resultCount,
+                  images: media,
+                  attachConfig: widget.attachConfig,
+                  count: widget.attachConfig.imageMaxCount - resultCount,
                 ),
             fullscreenDialog: true,
           ),

@@ -22,7 +22,7 @@ class _HomeState extends State<Home> {
   String title = '';
   int imgCount = 0;
   int fileCount = 0;
-  int mb = 0;
+  int maxMegaBytes = 0;
 
   /* 주소록 - 성명, 전화번호 */
   String name = '';
@@ -135,8 +135,11 @@ class _HomeState extends State<Home> {
                           // 첨부파일
                           AttachImageFilesWidget(
                             onValueChanged: updateFileInfo,
-                            imgCount: imgCount,
-                            fileCount: fileCount,
+                            attachConfig: AttachConfig(
+                              imageMaxCount: imgCount,
+                              fileMaxCount: fileCount,
+                              maxSize: maxMegaBytes,
+                            ),
                           ),
                         ],
                       ),
@@ -210,7 +213,7 @@ class _HomeState extends State<Home> {
                 title = data['title'];
                 imgCount = int.parse(data['imgCount']);
                 fileCount = int.parse(data['fileCount']);
-                mb = int.parse(data['byte']);
+                maxMegaBytes = int.parse(data['byte']);
 
                 // 초기화
                 name = '';

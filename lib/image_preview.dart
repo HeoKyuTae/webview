@@ -2,45 +2,59 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:photo_manager/photo_manager.dart';
+import 'package:photo_manager_image_provider/photo_manager_image_provider.dart'
+    show AssetEntityImageProvider;
+import 'package:webconnect/attach_image_files_widget.dart' show AttachConfig;
 import 'package:webconnect/snack.dart';
 import 'package:webconnect/theme_color.dart';
 
 class ImagePreview extends StatefulWidget {
   final List<AssetEntity> images;
   final int count;
-  const ImagePreview({super.key, required this.images, required this.count});
+  final AttachConfig attachConfig;
+
+  const ImagePreview({
+    super.key,
+    required this.images,
+    required this.count,
+    required this.attachConfig,
+  });
 
   @override
   State<ImagePreview> createState() => _ImagePreviewState();
 }
 
 class _ImagePreviewState extends State<ImagePreview> {
-  ThemeColor _themeColor = ThemeColor();
+  final ThemeColor _themeColor = ThemeColor();
   int selectedCount = 0;
   List<File> setImages = [];
-  List<File> getImages = [];
+  List<AssetEntity> getImages = [];
   List<bool> selectedImages = [];
 
   @override
   void initState() {
-    loadImages();
+    // loadImages();
+    getImages = widget.images;
+    print(getImages);
+
+    selectedImages.addAll(getImages.map((e) => false));
     super.initState();
   }
 
-  Future<void> loadImages() async {
-    if (widget.images.isNotEmpty) {
-      for (var i = 0; i < widget.images.length; i++) {
-        AssetEntity item = widget.images[i];
-        File? file = await item.file;
-        if (file != null) {
-          setState(() {
-            getImages.add(file);
-            selectedImages.add(false);
-          });
-        }
-      }
-    }
-  }
+  // Future<void> loadImages() async {
+  //   if (widget.images.isNotEmpty) {
+  //     for (var i = 0; i < widget.images.length; i++) {
+  //       AssetEntity item = widget.images[i];
+  //       File? file = await item.file;
+  //       if (file != null) {
+  //         setState(() {
+  //           getImages.add(file);
+  //           selectedImages.add(false);
+  //         });
+  //       }
+  //     }
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -83,21 +97,34 @@ class _ImagePreviewState extends State<ImagePreview> {
                   ),
                   itemBuilder: (BuildContext context, int index) {
                     return InkWell(
-                      onTap: () {
-                        if (widget.count == selectedCount &&
-                            !selectedImages[index]) {
-                          Snack().showTopSnackBar(context, '최대 선택 개수를 초과했습니다!');
-                          return;
-                        }
-
-                        selectedImages[index] = !selectedImages[index];
-
+                      onTap: () async {
                         if (selectedImages[index]) {
-                          setImages.add(getImages[index]);
-                          selectedCount += 1;
-                        } else {
-                          setImages.remove(getImages[index]);
+                          final file = await getImages[index].file;
+                          setImages.remove(file);
+                          selectedImages[index] = !selectedImages[index];
                           selectedCount -= 1;
+                        } else {
+                          if (widget.count == selectedCount &&
+                              !selectedImages[index]) {
+                            Snack().showTopSnackBar(
+                              context,
+                              '최대 선택 개수를 초과했습니다!',
+                            );
+                            return;
+                          }
+                          final currentFile = await getImages[index].file;
+                          if (currentFile != null) {
+                            /// overflow check
+                            if (widget.attachConfig.checkOverflowSize(
+                              currentFile.lengthSync(),
+                            )) {
+                              return;
+                            }
+
+                            setImages.add(currentFile);
+                            selectedImages[index] = !selectedImages[index];
+                            selectedCount += 1;
+                          }
                         }
 
                         setState(() {});
@@ -113,10 +140,20 @@ class _ImagePreviewState extends State<ImagePreview> {
                             Container(
                               width: size.width / 3,
                               height: size.width / 3,
-                              child: Image.file(
-                                getImages[index],
-                                fit: BoxFit.cover,
+                              child: Image(
+                                image: AssetEntityImageProvider(
+                                  getImages[index],
+                                  isOriginal: false,
+                                  thumbnailSize: const ThumbnailSize.square(
+                                    200,
+                                  ),
+                                  thumbnailFormat: ThumbnailFormat.jpeg,
+                                ),
                               ),
+                              //  Image.file(
+                              //   getImages[index],
+                              //   fit: BoxFit.cover,
+                              // ),
                             ),
                             selectedImages[index] == true
                                 ? Positioned(
