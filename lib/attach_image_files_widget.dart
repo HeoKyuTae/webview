@@ -36,7 +36,7 @@ class FileData {
 }
 
 class AttachImageFilesWidget extends StatefulWidget {
-  final Function(List, List, bool) onValueChanged;
+  final Function(List<File>, List<FileData>, bool) onValueChanged;
   final AttachConfig attachConfig;
 
   const AttachImageFilesWidget({
@@ -52,9 +52,9 @@ class AttachImageFilesWidget extends StatefulWidget {
 class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
   ThemeColor _themeColor = ThemeColor();
   bool isCheck = false;
-  var imageList = [];
-  var getFiles = [];
-  var setFiles = [];
+  final imageList = <File>[];
+  final getFiles = <FileData>[];
+  final setFiles = <FileData>[];
 
   /*
   /// 2. 선택한 사진 용량 체크
@@ -198,10 +198,9 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
         String fileName = path.basename(file.path);
 
         int fileSize = await file.length();
-
+        if (!widget.attachConfig.checkOverflowSize(fileSize)) {
           getFiles.add(FileData(fileName: fileName, file: file));
-        // if (!widget.attachConfig.checkOverflowSize(fileSize)) {
-        // }
+        }
       }
 
       var overflowCount =
@@ -451,7 +450,7 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
                     return Padding(
                       padding: const EdgeInsets.fromLTRB(12, 8, 16, 0),
                       child: Container(
-                        height: 44,
+                        // height: 44,
                         decoration: BoxDecoration(
                           color: Colors.white,
                           border: Border.all(color: Colors.grey, width: 0.2),
@@ -459,6 +458,7 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
                         ),
                         padding: EdgeInsets.fromLTRB(0, 0, 8, 0),
                         child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             InkWell(
                               onTap: () async {
@@ -479,21 +479,23 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
                                 }
                               },
                               child: Container(
-                                width: 44,
-                                height: 44,
-                                padding: EdgeInsets.all(15),
-                                child: Image.asset(
-                                  'assets/images/close.png',
-                                  color: Colors.red,
+                                alignment: Alignment.topCenter,
+                                child: Container(
+                                  width: 44,
+                                  height: 44,
+                                  padding: EdgeInsets.all(15),
+                                  child: Image.asset(
+                                    'assets/images/close.png',
+                                    color: Colors.red,
+                                  ),
                                 ),
                               ),
                             ),
                             Expanded(
-                              child: Text(
-                                data.fileName,
-                                style: TextStyle(
-                                  overflow: TextOverflow.ellipsis,
-                                ),
+                              child: Container(
+                                padding: EdgeInsets.symmetric(vertical: 12),
+                                alignment: Alignment.centerLeft,
+                                child: Text(data.fileName),
                               ),
                             ),
                           ],

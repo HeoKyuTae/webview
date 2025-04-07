@@ -27,18 +27,16 @@ class _HomeState extends State<Home> {
   /* 주소록 - 성명, 전화번호 */
   String name = '';
   String number = '';
-  bool contactCheck = false;
 
   /* 첨부파일 - 이미지, 파일, 심사 고객동의 */
   List imageList = [];
   List fileList = [];
   bool check = false;
 
-  void updateContactInfo(String newName, String newNumber, bool isCheck) {
+  void updateContactInfo(String newName, String newNumber) {
     setState(() {
       name = newName;
       number = newNumber;
-      contactCheck = isCheck;
     });
   }
 
@@ -162,16 +160,21 @@ class _HomeState extends State<Home> {
                       print('number: $number');
                       print('imageList length: ${imageList.length}');
                       print('fileList length: ${fileList.length}');
-                      print('정규식 : $contactCheck');
                       print('check(심사동의): $check');
 
-                      if (name == '' || number == '' || contactCheck == false) {
-                        Alert().showAlertDialog(context, '성명 및 전화번호를 확인해 주십시오.');
+                      if (name == '' || number == '') {
+                        Alert().showAlertDialog(
+                          context,
+                          '성명 및 전화번호를 확인해 주십시오.',
+                        );
                         return;
                       }
 
                       if (check == false) {
-                        Alert().showAlertDialog(context, '심사조회를 위해 고객동의 확인해 주십시오.');
+                        Alert().showAlertDialog(
+                          context,
+                          '심사조회를 위해 고객동의 확인해 주십시오.',
+                        );
                         return;
                       }
 
@@ -218,7 +221,6 @@ class _HomeState extends State<Home> {
                 // 초기화
                 name = '';
                 number = '';
-                contactCheck = false;
                 imageList.clear();
                 fileList.clear();
                 check = false;
@@ -242,11 +244,11 @@ class _HomeState extends State<Home> {
           <button onclick="sendMessageToFlutter()">Send to Flutter</button>
           <script>
             function sendMessageToFlutter() {
-            const codeText = document.getElementById("code").innerText;
-            const titleText = document.getElementById("title").innerText;
-            const imgCount = document.getElementById("imgCount").innerText;
-            const fileCount = document.getElementById("fileCount").innerText;
-            const byte = document.getElementById("byte").innerText;
+              const codeText = document.getElementById("code").innerText;
+              const titleText = document.getElementById("title").innerText;
+              const imgCount = document.getElementById("imgCount").innerText;
+              const fileCount = document.getElementById("fileCount").innerText;
+              const byte = document.getElementById("byte").innerText;
 
               if (window.FlutterChannel) {
                  const data = {

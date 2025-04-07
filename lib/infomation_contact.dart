@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'
+    show
+        FilteringTextInputFormatter,
+        LengthLimitingTextInputFormatter,
+        TextInputFormatter;
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:webconnect/search_contact_view.dart';
 import 'package:webconnect/snack.dart';
 import 'package:webconnect/theme_color.dart';
 
 class InfomationContact extends StatefulWidget {
-  final Function(String, String, bool) onValueChanged;
+  final Function(String, String) onValueChanged;
   const InfomationContact({super.key, required this.onValueChanged});
 
   @override
@@ -15,9 +20,8 @@ class InfomationContact extends StatefulWidget {
 class _InfomationContactState extends State<InfomationContact> {
   ThemeColor _themeColor = ThemeColor();
   List<Map<String, String>> contactList = [];
-  late TextEditingController nameController = TextEditingController();
-  late TextEditingController numberController = TextEditingController();
-  bool isCheck = false;
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController numberController = TextEditingController();
 
   Future<void> getContacts() async {
     contactList.clear();
@@ -73,7 +77,7 @@ class _InfomationContactState extends State<InfomationContact> {
   }
 
   void updateInfo() {
-    widget.onValueChanged(nameController.text, numberController.text, !isCheck);
+    widget.onValueChanged(nameController.text, numberController.text);
   }
 
   //대쉬를 포함하는 010 휴대폰 번호 포맷 검증 (010-1234-5678)
@@ -156,33 +160,22 @@ class _InfomationContactState extends State<InfomationContact> {
                         width: 200,
                         decoration: BoxDecoration(
                           color: Colors.white,
-                          border: Border.all(
-                            color: isCheck == false ? Colors.black : Colors.red,
-                            width: 0.5,
-                          ),
+                          border: Border.all(color: Colors.black, width: 0.5),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         padding: EdgeInsets.fromLTRB(8, 0, 0, 8),
                         child: TextField(
                           controller: numberController,
+                          inputFormatters: [
+                            FilteringTextInputFormatter
+                                .digitsOnly, // only numbers
+                            NumberFormatter(), // auto append hypen when input text
+                            LengthLimitingTextInputFormatter(20), //max 13
+                          ],
+                          maxLines: 1,
                           keyboardType: TextInputType.phone,
                           decoration: InputDecoration(border: InputBorder.none),
-                          onTap: () {
-                            setState(() {
-                              isCheck = !isValidPhoneNumberFormat(numberController.text);
-                            });
-                            updateInfo();
-                          },
-                          onEditingComplete: () {
-                            setState(() {
-                              isCheck = !isValidPhoneNumberFormat(numberController.text);
-                            });
-                            updateInfo();
-                          },
                           onChanged: (value) {
-                            setState(() {
-                              isCheck = !isValidPhoneNumberFormat(value);
-                            });
                             updateInfo();
                           },
                         ),
@@ -204,6 +197,43 @@ class _InfomationContactState extends State<InfomationContact> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class NumberFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    var text = newValue.text;
+
+    if (newValue.selection.baseOffset == 0) {
+      return newValue;
+    }
+
+    var buffer = StringBuffer();
+    for (int i = 0; i < text.length; i++) {
+      buffer.write(text[i]);
+      var nonZeroIndex = i + 1;
+      if (nonZeroIndex <= 3) {
+        if (nonZeroIndex % 3 == 0 && nonZeroIndex != text.length) {
+          buffer.write('-'); // Add double spaces.
+        }
+      } else {
+        if (nonZeroIndex % 7 == 0 &&
+            nonZeroIndex != text.length &&
+            nonZeroIndex > 4) {
+          buffer.write('-');
+        }
+      }
+    }
+
+    var string = buffer.toString();
+    return newValue.copyWith(
+      text: string,
+      selection: TextSelection.collapsed(offset: string.length),
     );
   }
 }
