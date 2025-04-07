@@ -5,7 +5,7 @@ import 'package:webconnect/snack.dart';
 import 'package:webconnect/theme_color.dart';
 
 class InfomationContact extends StatefulWidget {
-  final Function(String, String) onValueChanged;
+  final Function(String, String, bool) onValueChanged;
   const InfomationContact({super.key, required this.onValueChanged});
 
   @override
@@ -17,6 +17,7 @@ class _InfomationContactState extends State<InfomationContact> {
   List<Map<String, String>> contactList = [];
   late TextEditingController nameController = TextEditingController();
   late TextEditingController numberController = TextEditingController();
+  bool isCheck = false;
 
   Future<void> getContacts() async {
     contactList.clear();
@@ -72,7 +73,12 @@ class _InfomationContactState extends State<InfomationContact> {
   }
 
   void updateInfo() {
-    widget.onValueChanged(nameController.text, numberController.text);
+    widget.onValueChanged(nameController.text, numberController.text, !isCheck);
+  }
+
+  //대쉬를 포함하는 010 휴대폰 번호 포맷 검증 (010-1234-5678)
+  bool isValidPhoneNumberFormat(String number) {
+    return RegExp(r'^010-?([0-9]{4})-?([0-9]{4})$').hasMatch(number);
   }
 
   @override
@@ -126,7 +132,7 @@ class _InfomationContactState extends State<InfomationContact> {
                         width: 200,
                         decoration: BoxDecoration(
                           color: Colors.white,
-                          border: Border.all(color: Colors.black, width: 0.3),
+                          border: Border.all(color: Colors.black, width: 0.5),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         padding: EdgeInsets.fromLTRB(8, 0, 0, 8),
@@ -150,7 +156,10 @@ class _InfomationContactState extends State<InfomationContact> {
                         width: 200,
                         decoration: BoxDecoration(
                           color: Colors.white,
-                          border: Border.all(color: Colors.black, width: 0.3),
+                          border: Border.all(
+                            color: isCheck == false ? Colors.black : Colors.red,
+                            width: 0.5,
+                          ),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         padding: EdgeInsets.fromLTRB(8, 0, 0, 8),
@@ -158,6 +167,24 @@ class _InfomationContactState extends State<InfomationContact> {
                           controller: numberController,
                           keyboardType: TextInputType.phone,
                           decoration: InputDecoration(border: InputBorder.none),
+                          onTap: () {
+                            setState(() {
+                              isCheck = !isValidPhoneNumberFormat(numberController.text);
+                            });
+                            updateInfo();
+                          },
+                          onEditingComplete: () {
+                            setState(() {
+                              isCheck = !isValidPhoneNumberFormat(numberController.text);
+                            });
+                            updateInfo();
+                          },
+                          onChanged: (value) {
+                            setState(() {
+                              isCheck = !isValidPhoneNumberFormat(value);
+                            });
+                            updateInfo();
+                          },
                         ),
                       ),
                     ],

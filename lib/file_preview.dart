@@ -8,7 +8,8 @@ import 'package:webconnect/theme_color.dart';
 
 class FilePreview extends StatefulWidget {
   final List files;
-  const FilePreview({super.key, required this.files});
+  final int fileCount;
+  const FilePreview({super.key, required this.files, required this.fileCount});
 
   @override
   State<FilePreview> createState() => _FilePreviewState();
@@ -16,14 +17,14 @@ class FilePreview extends StatefulWidget {
 
 class _FilePreviewState extends State<FilePreview> {
   ThemeColor _themeColor = ThemeColor();
-  int count = 3;
   List<FileData> imageFiles = [];
   List<FileData> documentFiles = [];
 
   @override
   void initState() {
+    print(widget.files.length);
     imageFiles.clear();
-    documentFiles.cast();
+    documentFiles.clear();
 
     _splitFiles();
     super.initState();
@@ -43,7 +44,8 @@ class _FilePreviewState extends State<FilePreview> {
   }
 
   calc(int img, int doc, int c) {
-    int result = (img + doc) - c;
+    print('$img,$doc,$c');
+    int result = (c - (img + doc)) * -1;
 
     if (result > 0) {
       return '$result개의 첨부파일이 초과 되었습니다.';
@@ -70,7 +72,11 @@ class _FilePreviewState extends State<FilePreview> {
                       child: Container(
                         alignment: Alignment.centerLeft,
                         child: Text(
-                          calc(imageFiles.length, documentFiles.length, count),
+                          calc(
+                            imageFiles.length,
+                            documentFiles.length,
+                            widget.fileCount,
+                          ),
                         ),
                       ),
                     ),
@@ -101,7 +107,7 @@ class _FilePreviewState extends State<FilePreview> {
                       padding: const EdgeInsets.all(16.0),
                       child: Column(
                         children: [
-                          Column(
+                           imageFiles.isEmpty ? SizedBox() : Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Container(
@@ -134,29 +140,59 @@ class _FilePreviewState extends State<FilePreview> {
                                 itemBuilder: (BuildContext context, int index) {
                                   FileData item = imageFiles[index];
 
-                                  return Container(
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      border: Border.all(
-                                        color: Colors.black,
-                                        width: 0.1,
-                                      ),
-                                    ),
-                                    child: AspectRatio(
-                                      aspectRatio: 1,
-                                      child: SizedBox(
-                                        child: Image.file(
-                                          File(item.file.path),
-                                          fit: BoxFit.cover,
+                                  return Stack(
+                                    children: [
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          border: Border.all(
+                                            color: Colors.black,
+                                            width: 0.1,
+                                          ),
+                                        ),
+                                        child: AspectRatio(
+                                          aspectRatio: 1,
+                                          child: SizedBox(
+                                            child: Image.file(
+                                              File(item.file.path),
+                                              fit: BoxFit.cover,
+                                            ),
+                                          ),
                                         ),
                                       ),
-                                    ),
+                                      Positioned(
+                                        top: 8,
+                                        right: 8,
+                                        child: InkWell(
+                                          onTap: () {
+                                            setState(() {
+                                              imageFiles.removeAt(index);
+                                            });
+                                          },
+                                          child: Container(
+                                            width: 25,
+                                            height: 25,
+                                            padding: EdgeInsets.all(6),
+                                            decoration: BoxDecoration(
+                                              color: _themeColor.themeColor,
+                                              borderRadius:
+                                                  BorderRadius.circular(32),
+                                            ),
+                                            child: Image.asset(
+                                              'assets/images/close.png',
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   );
                                 },
                               ),
                               SizedBox(height: 32),
                             ],
                           ),
+                          documentFiles.isEmpty ? SizedBox() :
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -203,13 +239,20 @@ class _FilePreviewState extends State<FilePreview> {
                                       padding: EdgeInsets.fromLTRB(0, 0, 8, 0),
                                       child: Row(
                                         children: [
-                                          Container(
-                                            width: 44,
-                                            height: 44,
-                                            padding: EdgeInsets.all(15),
-                                            child: Image.asset(
-                                              'assets/images/close.png',
-                                              color: Colors.red,
+                                          InkWell(
+                                            onTap: () {
+                                              setState(() {
+                                                documentFiles.removeAt(index);
+                                              });
+                                            },
+                                            child: Container(
+                                              width: 44,
+                                              height: 44,
+                                              padding: EdgeInsets.all(15),
+                                              child: Image.asset(
+                                                'assets/images/close.png',
+                                                color: Colors.red,
+                                              ),
                                             ),
                                           ),
                                           Expanded(
@@ -250,7 +293,7 @@ class _FilePreviewState extends State<FilePreview> {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               backgroundColor:
-                                  count <
+                                  widget.fileCount <
                                           imageFiles.length +
                                               documentFiles.length
                                       ? Colors.grey
@@ -261,11 +304,15 @@ class _FilePreviewState extends State<FilePreview> {
                               ),
                             ),
                             onPressed: () {
-                              if (count <
+                              if (widget.fileCount <
                                   imageFiles.length + documentFiles.length) {
                                 Snack().showTopSnackBar(
                                   context,
-                                  calc(imageFiles.length, documentFiles.length, count),
+                                  calc(
+                                    imageFiles.length,
+                                    documentFiles.length,
+                                    widget.fileCount,
+                                  ),
                                 );
                                 return;
                               }

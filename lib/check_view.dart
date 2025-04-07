@@ -97,7 +97,6 @@ class _CheckViewState extends State<CheckView> {
                   Container(
                     height: 150,
                     child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
                       itemCount: widget.fileList.length,
                       itemBuilder: (context, index) {
                         FileData file = widget.fileList[index];

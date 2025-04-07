@@ -12,7 +12,6 @@ import 'package:webconnect/theme_color.dart';
 class FileData {
   final String fileName;
   final File file;
-
   FileData({required this.fileName, required this.file});
 
   @override
@@ -62,7 +61,7 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
     }
 */
 
-  bool checkOverflowSize(int fileSize) {
+  bool checkOverflowSize(int fileSize, ) {
     return fileSize > 1 * 1024 * 1024;
   }
 
@@ -131,7 +130,7 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
                           child: InkWell(
                             onTap: () {
                               var result = setFiles.length;
-
+                              print('파일첨부 개수 : $result');
                               if (result >= widget.fileCount) {
                                 Alert().showAlertDialog(
                                   context,
@@ -183,38 +182,45 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
         File file = File(platformFile.path!);
         String fileName = path.basename(file.path);
 
-        /*
         int fileSize = await file.length();
 
         if (checkOverflowSize(fileSize)) {
-          if (mounted) {
-            Alert().showAlertDialog(context, '첨부파일의 최대 용량은 1MB 입니다.');
-          }
+          // if (mounted) {
+          //   Alert().showAlertDialog(context, '첨부파일의 최대 용량은 1MB 입니다.');
+          // }
         } else {
-          files.add(FileData(fileName: fileName, file: file));
+          getFiles.add(FileData(fileName: fileName, file: file));
         }
-        */
-
-        getFiles.add(FileData(fileName: fileName, file: file));
       }
 
-      final result = await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => FilePreview(files: getFiles),
-          fullscreenDialog: true,
-        ),
-      );
+      var count = (setFiles.length - widget.fileCount) * -1;
 
-      setState(() {
-        getFiles.clear();
-      });
+      if (widget.fileCount > count) {
+        final result = await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder:
+                (context) => FilePreview(files: getFiles, fileCount: count),
+            fullscreenDialog: true,
+          ),
+        );
 
-      if (result != null) {
         setState(() {
-          setFiles.addAll(result);
+          getFiles.clear();
         });
 
+        if (result != null) {
+          setState(() {
+            setFiles.addAll(result);
+          });
+
+          updateInfo();
+        }
+      } else {
+        setState(() {
+          setFiles.addAll(getFiles);
+          getFiles.clear();
+        });
         updateInfo();
       }
     }

@@ -47,11 +47,7 @@ class Alert {
           content: SizedBox(
             width: 250,
             height: 44,
-            child: Column(
-              children: [
-                Text('첨부된 파일이 초기화 됩니다.',style: TextStyle(fontSize: 15, color: _themeColor.themeColor),),
-              ],
-            ),
+            child: Text('선택된 파일이 초기화 됩니다.',style: TextStyle(fontSize: 18, color: _themeColor.themeColor),),
           ),
           backgroundColor: Colors.white,
           insetPadding: EdgeInsets.all(16),
@@ -159,7 +155,7 @@ class Alert {
             height: 80,
             child: Column(
               children: [
-                Text(fileName,style: TextStyle(color: _themeColor.themeColor,fontSize: 18),),
+                Text(fileName,style: TextStyle(color: _themeColor.themeColor,fontSize: 18, overflow: TextOverflow.ellipsis),maxLines: 2,),
                 Text('파일을 삭제 하시겠습니까?',style: TextStyle(fontSize: 15),),
               ],
             ),
