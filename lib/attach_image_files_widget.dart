@@ -199,9 +199,9 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
 
         int fileSize = await file.length();
 
-        if (!widget.attachConfig.checkOverflowSize(fileSize)) {
           getFiles.add(FileData(fileName: fileName, file: file));
-        }
+        // if (!widget.attachConfig.checkOverflowSize(fileSize)) {
+        // }
       }
 
       var overflowCount =

@@ -35,26 +35,9 @@ class _ImagePreviewState extends State<ImagePreview> {
   void initState() {
     // loadImages();
     getImages = widget.images;
-    print(getImages);
-
     selectedImages.addAll(getImages.map((e) => false));
     super.initState();
   }
-
-  // Future<void> loadImages() async {
-  //   if (widget.images.isNotEmpty) {
-  //     for (var i = 0; i < widget.images.length; i++) {
-  //       AssetEntity item = widget.images[i];
-  //       File? file = await item.file;
-  //       if (file != null) {
-  //         setState(() {
-  //           getImages.add(file);
-  //           selectedImages.add(false);
-  //         });
-  //       }
-  //     }
-  //   }
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -98,11 +81,20 @@ class _ImagePreviewState extends State<ImagePreview> {
                   itemBuilder: (BuildContext context, int index) {
                     return InkWell(
                       onTap: () async {
+                        final file = await getImages[index].file;
+                        if (file == null) {
+                          return;
+                        }
+
                         if (selectedImages[index]) {
-                          final file = await getImages[index].file;
-                          setImages.remove(file);
-                          selectedImages[index] = !selectedImages[index];
-                          selectedCount -= 1;
+                          setState(() {
+                            setImages.removeWhere(
+                              (item) => item.path == file.path,
+                            );
+
+                            selectedImages[index] = !selectedImages[index];
+                            selectedCount -= 1;
+                          });
                         } else {
                           if (widget.count == selectedCount &&
                               !selectedImages[index]) {
@@ -112,22 +104,24 @@ class _ImagePreviewState extends State<ImagePreview> {
                             );
                             return;
                           }
-                          final currentFile = await getImages[index].file;
-                          if (currentFile != null) {
-                            /// overflow check
-                            if (widget.attachConfig.checkOverflowSize(
-                              currentFile.lengthSync(),
-                            )) {
-                              return;
-                            }
 
-                            setImages.add(currentFile);
+                          /// overflow check
+                          if (widget.attachConfig.checkOverflowSize(
+                            file.lengthSync(),
+                          )) {
+                            Snack().showTopSnackBar(
+                              context,
+                              '최대용량 ${widget.attachConfig.maxSize}MB를 초과 하였습니다.',
+                            );
+                            return;
+                          }
+
+                          setState(() {
+                            setImages.add(file);
                             selectedImages[index] = !selectedImages[index];
                             selectedCount += 1;
-                          }
+                          });
                         }
-
-                        setState(() {});
                       },
                       child: Container(
                         decoration: BoxDecoration(
@@ -149,11 +143,8 @@ class _ImagePreviewState extends State<ImagePreview> {
                                   ),
                                   thumbnailFormat: ThumbnailFormat.jpeg,
                                 ),
+                                fit: BoxFit.cover,
                               ),
-                              //  Image.file(
-                              //   getImages[index],
-                              //   fit: BoxFit.cover,
-                              // ),
                             ),
                             selectedImages[index] == true
                                 ? Positioned(
@@ -222,6 +213,7 @@ class _ImagePreviewState extends State<ImagePreview> {
                                 return;
                               }
 
+                              print(setImages.length);
                               Navigator.pop(context, setImages);
                             },
                             child: Text(
