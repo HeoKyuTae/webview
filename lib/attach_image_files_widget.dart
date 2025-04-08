@@ -56,26 +56,6 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
   final getFiles = <FileData>[];
   final setFiles = <FileData>[];
 
-  /*
-  /// 2. 선택한 사진 용량 체크
-    List<XFile> overflowFiles = [];
-    for (var image in selectedImages) {
-      int length = await image.length();
-      if (checkOverflowSize(length)) {
-        overflowFiles.add(image);
-      }
-    }
-
-    List<XFile> validImages = selectedImages;
-    if (overflowFiles.isNotEmpty && mounted) {
-      Snack().showTopSnackBar(context, '1MB 넘는 첨부 이미지는 자동 제외 되었습니다.');
-      validImages =
-          selectedImages.where((element) {
-            return !overflowFiles.contains(element);
-          }).toList();
-    }
-*/
-
   bool checkOverflowSize(int fileSize) {
     return fileSize > 1 * 1024 * 1024;
   }
@@ -188,6 +168,8 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
   Future<void> getFile() async {
     FilePickerResult? resultFiles = await FilePicker.platform.pickFiles(
       allowMultiple: true,
+      // type: FileType.custom,
+      // allowedExtensions: ['txt', 'ppt', 'pptx']
     );
 
     if (resultFiles != null) {
@@ -246,14 +228,18 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
 
   // =-=-=-=-=-=-=-=-=
 
-  List<AssetEntity> images = [];
-
   Future<void> loadImages() async {
     var resultCount = imageList.length;
 
     final PermissionState permission =
-        await PhotoManager.requestPermissionExtend();
-
+        await PhotoManager.requestPermissionExtend(
+          requestOption: PermissionRequestOption(
+            androidPermission: AndroidPermission(
+              type: RequestType.image,
+              mediaLocation: true,
+            ),
+          ),
+        );
     if (permission.isAuth || permission.hasAccess) {
       List<AssetPathEntity> albums = await PhotoManager.getAssetPathList(
         type: RequestType.image,
@@ -264,12 +250,6 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
           page: 0,
           size: 10000,
         );
-
-        setState(() {
-          images = media;
-        });
-
-        print(widget.attachConfig);
 
         final result = await Navigator.push(
           context,
