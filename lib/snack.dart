@@ -42,7 +42,7 @@ class Snack {
                     ),
                     child: Text(
                       message,
-                      style: TextStyle(color: Colors.white, fontSize: 16),
+                      style: TextStyle(color: Colors.white, fontSize: 14),
                       textAlign: TextAlign.center,
                     ),
                   ),

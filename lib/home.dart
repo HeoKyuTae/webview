@@ -1,13 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:webconnect/alert.dart';
 import 'package:webconnect/apply_view.dart';
-import 'package:webconnect/check_view.dart';
-import 'package:webconnect/theme_color.dart';
 import 'package:webview_flutter/webview_flutter.dart';
-import 'infomation_contact.dart';
-import 'attach_image_files_widget.dart';
-import 'info.dart';
+
 
 class Home extends StatefulWidget {
   const Home({super.key});

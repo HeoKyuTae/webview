@@ -47,7 +47,7 @@ class _FilePreviewState extends State<FilePreview> {
     int result = (c - (img + doc)) * -1;
 
     if (result > 0) {
-      return '$result개의 첨부파일이 초과 되었습니다.';
+      return '선택한 첨부파일중 $result개를 삭제해야 등록가능합니다.';
     } else {
       return '';
     }
