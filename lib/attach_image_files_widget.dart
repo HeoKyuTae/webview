@@ -531,32 +531,37 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
                     ),
                     SizedBox(width: 8),
                     Expanded(
-                      child: Text(
-                        '심사조회를 위해 고객 동의를 확인하였습니다.',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                    InkWell(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => PrivacyView(),
-                            fullscreenDialog: true,
+                      child: Row(
+                        children: [
+                          Text(
+                            '심사조회를 위해 고객 동의를 확인하였습니다.',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
-                        );
-                      },
-                      child: SizedBox(
-                        child: Text(
-                          '[보기]',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
+                          SizedBox(width: 8),
+                          InkWell(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => PrivacyView(),
+                                  fullscreenDialog: true,
+                                ),
+                              );
+                            },
+                            child: SizedBox(
+                              child: Text(
+                                '[보기]',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
                           ),
-                        ),
+                        ],
                       ),
                     ),
                   ],

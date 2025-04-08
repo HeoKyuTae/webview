@@ -64,9 +64,9 @@ class _SearchContactViewState extends State<SearchContactView> {
                         Navigator.pop(context);
                       },
                       child: Container(
-                        width: 30,
-                        height: 30,
-                        padding: EdgeInsets.all(4),
+                        width: 44,
+                        height: 44,
+                        padding: EdgeInsets.all(12),
                         child: Image.asset('assets/images/close.png'),
                       ),
                     ),
@@ -75,7 +75,7 @@ class _SearchContactViewState extends State<SearchContactView> {
               ),
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                  padding: const EdgeInsets.all(8),
                   child: Container(
                     color: Colors.white,
                     child: Column(

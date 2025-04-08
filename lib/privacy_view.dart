@@ -42,9 +42,9 @@ class _PrivacyViewState extends State<PrivacyView> {
                         Navigator.pop(context);
                       },
                       child: Container(
-                        width: 30,
-                        height: 30,
-                        padding: EdgeInsets.all(4),
+                        width: 44,
+                        height: 44,
+                        padding: EdgeInsets.all(12),
                         child: Image.asset('assets/images/close.png'),
                       ),
                     ),
