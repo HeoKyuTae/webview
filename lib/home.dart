@@ -124,16 +124,10 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        FocusManager.instance.primaryFocus?.unfocus();
-      },
-      child: Scaffold(
-        resizeToAvoidBottomInset: false,
-        backgroundColor: Colors.white,
-        body: SafeArea(
-          child: SizedBox(child: WebViewWidget(controller: controller)),
-        ),
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: SizedBox(child: WebViewWidget(controller: controller)),
       ),
     );
   }

@@ -36,6 +36,7 @@ class FileData {
 }
 
 class AttachImageFilesWidget extends StatefulWidget {
+  final BuildContext parentContext;
   final Function(List<File>, List<FileData>, bool) onValueChanged;
   final AttachConfig attachConfig;
 
@@ -43,6 +44,7 @@ class AttachImageFilesWidget extends StatefulWidget {
     super.key,
     required this.onValueChanged,
     required this.attachConfig,
+    required this.parentContext,
   });
 
   @override
@@ -61,6 +63,7 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
   }
 
   void bottomSheetMenu() {
+    FocusManager.instance.primaryFocus?.unfocus();
     showModalBottomSheet(
       context: context,
       shape: RoundedRectangleBorder(

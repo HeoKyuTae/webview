@@ -10,8 +10,13 @@ import 'package:webconnect/snack.dart';
 import 'package:webconnect/theme_color.dart';
 
 class InfomationContact extends StatefulWidget {
+  final BuildContext parentContext;
   final Function(String, String) onValueChanged;
-  const InfomationContact({super.key, required this.onValueChanged});
+  const InfomationContact({
+    super.key,
+    required this.onValueChanged,
+    required this.parentContext,
+  });
 
   @override
   State<InfomationContact> createState() => _InfomationContactState();
@@ -24,6 +29,7 @@ class _InfomationContactState extends State<InfomationContact> {
   final TextEditingController numberController = TextEditingController();
 
   Future<void> getContacts() async {
+    FocusManager.instance.primaryFocus?.unfocus();
     contactList.clear();
 
     if (await FlutterContacts.requestPermission()) {
