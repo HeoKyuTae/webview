@@ -8,12 +8,12 @@ import 'package:webconnect/attach_image_files_widget.dart' show AttachConfig;
 import 'package:webconnect/snack.dart';
 import 'package:webconnect/theme_color.dart';
 
-class ImagePreview extends StatefulWidget {
+class ImagePicker extends StatefulWidget {
   final List<AssetEntity> images;
   final int count;
   final AttachConfig attachConfig;
 
-  const ImagePreview({
+  const ImagePicker({
     super.key,
     required this.images,
     required this.count,
@@ -21,10 +21,10 @@ class ImagePreview extends StatefulWidget {
   });
 
   @override
-  State<ImagePreview> createState() => _ImagePreviewState();
+  State<ImagePicker> createState() => _ImagePickerState();
 }
 
-class _ImagePreviewState extends State<ImagePreview> {
+class _ImagePickerState extends State<ImagePicker> {
   final ThemeColor _themeColor = ThemeColor();
   int selectedCount = 0;
   List<File> setImages = [];

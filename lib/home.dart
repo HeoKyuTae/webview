@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:webconnect/apply_view.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
-
 class Home extends StatefulWidget {
   const Home({super.key});
 
@@ -13,26 +12,12 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   WebViewController controller = WebViewController();
-  String code = '';
-  String title = '';
-  int imgCount = 0;
-  int fileCount = 0;
-  int maxMegaBytes = 0;
 
-  void applyView() {
+  void applyView(ApplyInfo applyInfo) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder:
-            (context) => ApplyView(
-              applyInfo: ApplyInfo(
-                code: code,
-                title: title,
-                imgCount: imgCount,
-                fileCount: fileCount,
-                maxMegaBytes: maxMegaBytes,
-              ),
-            ),
+        builder: (context) => ApplyView(applyInfo: applyInfo),
         fullscreenDialog: true,
       ),
     );
@@ -52,13 +37,15 @@ class _HomeState extends State<Home> {
               if (message.message != '') {
                 // JSON 데이터를 파싱하여 사용
                 final Map<String, dynamic> data = jsonDecode(message.message);
-                code = data['code'];
-                title = data['title'];
-                imgCount = int.parse(data['imgCount']);
-                fileCount = int.parse(data['fileCount']);
-                maxMegaBytes = int.parse(data['byte']);
+                final info = ApplyInfo(
+                  code: data['code'],
+                  title: data['title'],
+                  imgCount: int.parse(data['imgCount']),
+                  fileCount: int.parse(data['fileCount']),
+                  maxMegaBytes: int.parse(data['byte']),
+                );
 
-                applyView();
+                applyView(info);
               }
             },
           )

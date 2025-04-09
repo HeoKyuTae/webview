@@ -5,6 +5,7 @@ import 'package:flutter/services.dart'
         LengthLimitingTextInputFormatter,
         TextInputFormatter;
 import 'package:flutter_contacts/flutter_contacts.dart';
+import 'package:photo_manager/photo_manager.dart';
 import 'package:webconnect/search_contact_view.dart';
 import 'package:webconnect/snack.dart';
 import 'package:webconnect/theme_color.dart';
@@ -52,7 +53,7 @@ class _InfomationContactState extends State<InfomationContact> {
         }
       });
     } else {
-      print("연락처 접근 권한이 거부됨");
+      PhotoManager.openSetting();
     }
   }
 
@@ -90,18 +91,22 @@ class _InfomationContactState extends State<InfomationContact> {
   String maskName(String name) {
     int length = name.length;
 
-    if (length == 2) {
-      // 예: 홍길 -> 홍*
-      return '${name[0]}*';
-    } else if (length == 3) {
-      // 예: 홍길동 -> 홍*동
-      return '${name[0]}*${name[2]}';
-    } else if (length == 4) {
-      // 예: 홍길동전 -> 홍**전
-      return '${name[0]}**${name[3]}';
+    String middleMask = "";
+    if (length > 2) {
+      middleMask = name.substring(1, length - 1);
     } else {
-      // 그 외는 그대로 반환
-      return name;
+      middleMask = name.substring(1);
+    }
+
+    String dot = "";
+    for (int i = 0; i < middleMask.length; i++) {
+      dot += "*";
+    }
+
+    if (length > 2) {
+      return name.substring(0, 1) + dot + name.substring(length - 1, length);
+    } else {
+      return name.substring(0, 1) + dot;
     }
   }
 
@@ -167,20 +172,11 @@ class _InfomationContactState extends State<InfomationContact> {
                             SizedBox(width: 8),
                             nameController.text == ''
                                 ? SizedBox()
-                                : Container(
-                                  width: 80,
-                                  padding: EdgeInsets.fromLTRB(8, 2, 8, 2),
-                                  decoration: BoxDecoration(
+                                : Text(
+                                  nameController.text,
+                                  style: TextStyle(
+                                    fontSize: 13,
                                     color: _themeColor.themeColor,
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  alignment: Alignment.center,
-                                  child: Text(
-                                    nameController.text,
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      color: Colors.white,
-                                    ),
                                   ),
                                 ),
                             SizedBox(width: 8),

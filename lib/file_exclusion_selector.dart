@@ -6,16 +6,16 @@ import 'package:webconnect/attach_image_files_widget.dart';
 import 'package:webconnect/snack.dart';
 import 'package:webconnect/theme_color.dart';
 
-class FilePreview extends StatefulWidget {
+class FileExclusionSelector extends StatefulWidget {
   final List files;
   final int fileCount;
-  const FilePreview({super.key, required this.files, required this.fileCount});
+  const FileExclusionSelector({super.key, required this.files, required this.fileCount});
 
   @override
-  State<FilePreview> createState() => _FilePreviewState();
+  State<FileExclusionSelector> createState() => _FileExclusionSelectorState();
 }
 
-class _FilePreviewState extends State<FilePreview> {
+class _FileExclusionSelectorState extends State<FileExclusionSelector> {
   ThemeColor _themeColor = ThemeColor();
   List<FileData> imageFiles = [];
   List<FileData> documentFiles = [];

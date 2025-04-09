@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:webconnect/alert.dart';
 import 'package:webconnect/file_preview.dart';
-import 'package:webconnect/image_preview.dart';
+import 'package:webconnect/image_picker.dart';
 import 'package:webconnect/privacy_view.dart';
 import 'package:webconnect/theme_color.dart';
 
@@ -171,8 +171,6 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
   Future<void> getFile() async {
     FilePickerResult? resultFiles = await FilePicker.platform.pickFiles(
       allowMultiple: true,
-      // type: FileType.custom,
-      // allowedExtensions: ['txt', 'ppt', 'pptx']
     );
 
     if (resultFiles != null) {
@@ -198,7 +196,7 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
           context,
           MaterialPageRoute(
             builder:
-                (context) => FilePreview(
+                (context) => FileExclusionSelector(
                   files: getFiles,
                   fileCount: widget.attachConfig.fileMaxCount - setFiles.length,
                 ),
@@ -258,7 +256,7 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
           context,
           MaterialPageRoute(
             builder:
-                (context) => ImagePreview(
+                (context) => ImagePicker(
                   images: media,
                   attachConfig: widget.attachConfig,
                   count: widget.attachConfig.imageMaxCount - resultCount,
