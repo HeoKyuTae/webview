@@ -4,7 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:webconnect/alert.dart';
-import 'package:webconnect/file_preview.dart';
+import 'package:webconnect/file_exclusion_selector.dart';
 import 'package:webconnect/image_picker.dart';
 import 'package:webconnect/privacy_view.dart';
 import 'package:webconnect/theme_color.dart';
