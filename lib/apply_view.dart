@@ -41,6 +41,7 @@ class _ApplyViewState extends State<ApplyView> {
   /* 주소록 - 성명, 전화번호 */
   String name = '';
   String number = '';
+  bool isNumberCheck = false;
 
   /* 첨부파일 - 이미지, 파일, 심사 고객동의 */
   List imageList = [];
@@ -94,6 +95,9 @@ class _ApplyViewState extends State<ApplyView> {
 
   dismissKeyboard() {
     FocusManager.instance.primaryFocus?.unfocus();
+  }
+  bool isValidPhoneNumberFormat(String number) {
+    return RegExp(r'^010-?([0-9]{4})-?([0-9]{4})$').hasMatch(number);
   }
 
   @override
@@ -191,11 +195,15 @@ class _ApplyViewState extends State<ApplyView> {
                         print('fileList length: ${fileList.length}');
                         print('check(심사동의): $check');
 
-                        if (name == '' || number == '') {
-                          Alert().showAlertDialog(
-                            context,
-                            '성명 및 전화번호를 확인해 주십시오.',
-                          );
+                        isNumberCheck = isValidPhoneNumberFormat(number);
+
+                        if (number == '' || isNumberCheck == false) {
+                          Alert().showAlertDialog(context, '전화번호를 확인해 주십시오.');
+                          return;
+                        }
+
+                        if (imageList.length + fileList.length <= 0) {
+                          Alert().showAlertDialog(context, '첨부파일 1개이상 등록해 주십시오.');
                           return;
                         }
 

@@ -23,6 +23,7 @@ class InfomationContact extends StatefulWidget {
 }
 
 class _InfomationContactState extends State<InfomationContact> {
+  final FocusNode _focusNode = FocusNode();
   ThemeColor _themeColor = ThemeColor();
   List<Map<String, String>> contactList = [];
   final TextEditingController nameController = TextEditingController();
@@ -74,7 +75,7 @@ class _InfomationContactState extends State<InfomationContact> {
       Snack().showTopSnackBar(context, '연락처 정보를 가져 왔습니다.');
 
       setState(() {
-        nameController.text = data['name'];
+        nameController.text = maskName(data['name']);
         numberController.text = data['number'];
       });
 
@@ -86,9 +87,33 @@ class _InfomationContactState extends State<InfomationContact> {
     widget.onValueChanged(nameController.text, numberController.text);
   }
 
-  //대쉬를 포함하는 010 휴대폰 번호 포맷 검증 (010-1234-5678)
-  bool isValidPhoneNumberFormat(String number) {
-    return RegExp(r'^010-?([0-9]{4})-?([0-9]{4})$').hasMatch(number);
+  String maskName(String name) {
+    int length = name.length;
+
+    if (length == 2) {
+      // 예: 홍길 -> 홍*
+      return '${name[0]}*';
+    } else if (length == 3) {
+      // 예: 홍길동 -> 홍*동
+      return '${name[0]}*${name[2]}';
+    } else if (length == 4) {
+      // 예: 홍길동전 -> 홍**전
+      return '${name[0]}**${name[3]}';
+    } else {
+      // 그 외는 그대로 반환
+      return name;
+    }
+  }
+
+  @override
+  void initState() {
+    _focusNode.addListener(() {
+      if (!_focusNode.hasFocus) {
+        updateInfo();
+      }
+    });
+
+    super.initState();
   }
 
   @override
@@ -101,7 +126,6 @@ class _InfomationContactState extends State<InfomationContact> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 170,
       child: Column(
         children: [
           TextButton(
@@ -123,7 +147,7 @@ class _InfomationContactState extends State<InfomationContact> {
             ),
           ),
           Container(
-            height: 120,
+            padding: EdgeInsets.fromLTRB(0, 8, 0, 8),
             decoration: BoxDecoration(
               color: Color.fromRGBO(240, 240, 240, 1),
               borderRadius: BorderRadius.circular(8),
@@ -136,54 +160,65 @@ class _InfomationContactState extends State<InfomationContact> {
                   padding: EdgeInsets.fromLTRB(16, 0, 16, 0),
                   child: Row(
                     children: [
-                      Text('성명', style: TextStyle(fontSize: 16)),
-                      Expanded(child: Container()),
                       Container(
-                        width: 200,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          border: Border.all(color: Colors.black, width: 0.5),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        padding: EdgeInsets.fromLTRB(8, 0, 0, 8),
-                        child: TextField(
-                          controller: nameController,
-                          decoration: InputDecoration(border: InputBorder.none),
+                        child: Row(
+                          children: [
+                            Text('전화번호', style: TextStyle(fontSize: 15)),
+                            SizedBox(width: 8),
+                            nameController.text == ''
+                                ? SizedBox()
+                                : Container(
+                                  width: 80,
+                                  padding: EdgeInsets.fromLTRB(8, 2, 8, 2),
+                                  decoration: BoxDecoration(
+                                    color: _themeColor.themeColor,
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  alignment: Alignment.center,
+                                  child: Text(
+                                    nameController.text,
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                            SizedBox(width: 8),
+                          ],
                         ),
                       ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 8),
-                Container(
-                  height: 30,
-                  padding: EdgeInsets.fromLTRB(16, 0, 16, 0),
-                  child: Row(
-                    children: [
-                      Text('전화번호', style: TextStyle(fontSize: 16)),
-                      Expanded(child: Container()),
-                      Container(
-                        width: 200,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          border: Border.all(color: Colors.black, width: 0.5),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        padding: EdgeInsets.fromLTRB(8, 0, 0, 8),
-                        child: TextField(
-                          controller: numberController,
-                          inputFormatters: [
-                            FilteringTextInputFormatter
-                                .digitsOnly, // only numbers
-                            NumberFormatter(), // auto append hypen when input text
-                            LengthLimitingTextInputFormatter(20), //max 13
-                          ],
-                          maxLines: 1,
-                          keyboardType: TextInputType.phone,
-                          decoration: InputDecoration(border: InputBorder.none),
-                          onChanged: (value) {
-                            updateInfo();
-                          },
+                      Expanded(
+                        child: Container(
+                          width: 150,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            border: Border.all(color: Colors.black, width: 0.5),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          padding: EdgeInsets.fromLTRB(8, 0, 0, 8),
+                          child: TextField(
+                            focusNode: _focusNode,
+                            controller: numberController,
+                            style: TextStyle(
+                              overflow: TextOverflow.ellipsis, // 핵심
+                            ),
+                            inputFormatters: [
+                              FilteringTextInputFormatter
+                                  .digitsOnly, // only numbers
+                              NumberFormatter(), // auto append hypen when input text
+                              LengthLimitingTextInputFormatter(20), //max 13
+                            ],
+                            maxLines: 1,
+                            keyboardType: TextInputType.phone,
+                            decoration: InputDecoration(
+                              border: InputBorder.none,
+                            ),
+                            onChanged: (value) {
+                              setState(() {
+                                nameController.clear();
+                              });
+                            },
+                          ),
                         ),
                       ),
                     ],
@@ -194,7 +229,8 @@ class _InfomationContactState extends State<InfomationContact> {
                   padding: EdgeInsets.fromLTRB(16, 0, 16, 0),
                   alignment: Alignment.centerLeft,
                   child: Text(
-                    '* 성명, 전화번호는 필수 정보입니다.',
+                    '* 전화번호는 필수 정보입니다.',
+                    // '* 성명, 전화번호는 필수 정보입니다.',
                     style: TextStyle(color: Colors.black.withAlpha(150)),
                   ),
                 ),

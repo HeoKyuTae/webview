@@ -501,7 +501,7 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
           ),
         ),
         Container(
-          padding: EdgeInsets.all(8),
+          padding: EdgeInsets.fromLTRB(4, 8, 4, 8),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -516,26 +516,24 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
                         });
                         updateInfo();
                       },
-                      child: Container(
-                        width: 21,
-                        height: 21,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          border: Border.all(
-                            color: Colors.black.withAlpha(130),
-                          ),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child:
-                            isCheck
-                                ? Image.asset('assets/images/check.png')
-                                : SizedBox(),
-                      ),
-                    ),
-                    SizedBox(width: 8),
-                    Expanded(
                       child: Row(
                         children: [
+                          Container(
+                            width: 21,
+                            height: 21,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              border: Border.all(
+                                color: Colors.black.withAlpha(130),
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child:
+                                isCheck
+                                    ? Image.asset('assets/images/check.png')
+                                    : SizedBox(),
+                          ),
+                          SizedBox(width: 8),
                           Text(
                             '심사조회를 위해 고객 동의를 확인하였습니다.',
                             style: TextStyle(
@@ -544,27 +542,27 @@ class _AttachImageFilesWidgetState extends State<AttachImageFilesWidget> {
                             ),
                           ),
                           SizedBox(width: 8),
-                          InkWell(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => PrivacyView(),
-                                  fullscreenDialog: true,
-                                ),
-                              );
-                            },
-                            child: SizedBox(
-                              child: Text(
-                                '[보기]',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                          ),
                         ],
+                      ),
+                    ),
+                    InkWell(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => PrivacyView(),
+                            fullscreenDialog: true,
+                          ),
+                        );
+                      },
+                      child: SizedBox(
+                        child: Text(
+                          '[보기]',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
                     ),
                   ],
